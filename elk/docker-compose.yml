@@ -1,0 +1,47 @@
+# Elasticsearch and Kibana for timelines from OpenRelik.
+# Single node, security off, bound to localhost only. Not for shared use.
+name: openrelik-elk
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: openrelik-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms${ES_HEAP:-2g} -Xmx${ES_HEAP:-2g}
+      - http.max_content_length=200mb
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "127.0.0.1:9200:9200"
+    networks:
+      default:
+      openrelik:
+        aliases: [elasticsearch]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 30
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: openrelik-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "127.0.0.1:5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+volumes:
+  es-data:
+
+networks:
+  # OpenRelik's network, so its Elasticsearch worker reaches http://elasticsearch:9200.
+  openrelik:
+    external: true
+    name: openrelik_default

@@ -1,0 +1,36 @@
+# Extra workers for an OpenRelik install. setup.sh copies this file next to
+# OpenRelik's docker-compose.yml, where docker compose merges it automatically.
+
+services:
+  openrelik-worker-uac:
+    container_name: openrelik-worker-uac
+    image: ghcr.io/guzzy711/openrelik-worker-uac:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=2 --loglevel=INFO -Q openrelik-worker-uac"
+
+  openrelik-worker-ileapp:
+    container_name: openrelik-worker-ileapp
+    image: ghcr.io/guzzy711/openrelik-worker-ileapp:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-ileapp"
+
+  openrelik-worker-elasticsearch:
+    container_name: openrelik-worker-elasticsearch
+    image: ghcr.io/guzzy711/openrelik-worker-elasticsearch:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+      # The Elasticsearch of elk/docker-compose.yml, on OpenRelik's network.
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_VERIFY_CERTS=false
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=2 --loglevel=INFO -Q openrelik-worker-elasticsearch"
