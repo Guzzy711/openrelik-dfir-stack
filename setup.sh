@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Set up OpenRelik with the UAC, iLEAPP and Elasticsearch workers, and a local
+# Set up OpenRelik with the UAC, iLEAPP, ALEAPP and Elasticsearch workers, and a local
 # Elasticsearch + Kibana. Safe to run again: each step skips what is already done.
 #
 # Usage: ./setup.sh [openrelik dir]   (default: ./openrelik, made by the installer)
@@ -38,7 +38,7 @@ else
   [[ -f "$OPENRELIK_DIR/docker-compose.yml" ]] || fail "The installer did not create $OPENRELIK_DIR"
 fi
 
-step "Workers (UAC, iLEAPP, Elasticsearch)"
+step "Workers (UAC, iLEAPP, ALEAPP, Elasticsearch)"
 override="$OPENRELIK_DIR/docker-compose.override.yml"
 if [[ -f "$override" ]] && ! cmp -s "$override" "$STACK_DIR/docker-compose.override.yml"; then
   cp "$override" "$override.bak.$(date +%Y%m%d%H%M%S)"
@@ -46,7 +46,8 @@ if [[ -f "$override" ]] && ! cmp -s "$override" "$STACK_DIR/docker-compose.overr
 fi
 cp "$STACK_DIR/docker-compose.override.yml" "$override"
 (cd "$OPENRELIK_DIR" \
-  && docker compose pull openrelik-worker-uac openrelik-worker-ileapp openrelik-worker-elasticsearch \
+  && docker compose pull openrelik-worker-uac openrelik-worker-ileapp \
+     openrelik-worker-aleapp openrelik-worker-elasticsearch \
   && docker compose up -d)
 
 step "Elasticsearch and Kibana"
@@ -54,12 +55,12 @@ docker compose -f "$STACK_DIR/elk/docker-compose.yml" up -d
 wait_for Elasticsearch "$ES/_cluster/health"
 
 # One node: no replicas, or every index stays yellow.
-for pattern in uac openrelik ileapp; do
+for pattern in uac openrelik ileapp aleapp; do
   curl -fs -X PUT "$ES/_index_template/$pattern" -H 'Content-Type: application/json' \
     -d "{\"index_patterns\": [\"$pattern-*\"], \"template\": {\"settings\": {\"number_of_replicas\": 0}}}" \
     >/dev/null
 done
-echo "Index templates: uac-*, openrelik-*, ileapp-* (no replicas)"
+echo "Index templates: uac-*, openrelik-*, ileapp-*, aleapp-* (no replicas)"
 
 wait_for Kibana "$KIBANA/api/status"
 data_view() {  # data_view <id> <pattern> <name>
@@ -70,10 +71,11 @@ data_view() {  # data_view <id> <pattern> <name>
 }
 data_view uac "uac-*" "UAC timelines"
 data_view ileapp "ileapp-*" "iLEAPP timelines"
+data_view aleapp "aleapp-*" "ALEAPP timelines"
 data_view openrelik "openrelik-*" "OpenRelik exports"
 curl -fs -X POST "$KIBANA/api/data_views/default" -H 'kbn-xsrf: true' \
   -H 'Content-Type: application/json' -d '{"data_view_id": "uac", "force": true}' >/dev/null
-echo "Kibana data views: UAC timelines, iLEAPP timelines, OpenRelik exports"
+echo "Kibana data views: UAC, iLEAPP and ALEAPP timelines, OpenRelik exports"
 
 step "Done"
 cat <<EOF
@@ -82,5 +84,5 @@ Kibana:         $KIBANA
 Elasticsearch:  $ES
 
 In an OpenRelik workflow, export timelines with "Elasticsearch Export": index name
-uac-<host>, ileapp-<device> or openrelik-<anything>, "Parse input as JSON lines" on.
+uac-<host>, ileapp-<device>, aleapp-<device> or openrelik-<anything>, "Parse input as JSON lines" on.
 EOF

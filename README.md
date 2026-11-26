@@ -5,6 +5,7 @@ One script that gives you a forensic workbench on your own computer:
 - **OpenRelik**: upload evidence and run tools on it from your browser.
 - **UAC worker**: reads Linux/macOS/Unix collections made with [UAC](https://github.com/tclahr/uac).
 - **iLEAPP worker**: reads iPhone extractions and iTunes backups with [iLEAPP](https://github.com/abrignoni/iLEAPP).
+- **ALEAPP worker**: reads Android extractions with [ALEAPP](https://github.com/abrignoni/ALEAPP).
 - **Elasticsearch + Kibana**: search and graph the timelines.
 
 Everything runs in Docker on your machine. Nothing is sent anywhere.
@@ -91,6 +92,18 @@ Log in to OpenRelik as `admin` with the password from step 2.
 4. Click **Run**. When it is done, download the **report zip** and open
    `ileapp_report/index.html`, or search the timeline in Kibana under **iLEAPP timelines**.
 
+### An Android phone (ALEAPP)
+
+1. Upload the full file system extraction (`.zip`, `.tar` or `.tar.gz`) or a disk image
+   (`.E01`, `.img`).
+2. Create a workflow with **ALEAPP: Android artifacts**.
+   - *Timeline format*: Elasticsearch bulk NDJSON
+   - Signal backup on the phone? Enter its recovery key in *Signal recovery key*.
+3. Add **Elasticsearch Export** after it: index name `aleapp-myphone`, *Parse input as
+   JSON lines* on.
+4. Click **Run**. Download the **report zip** and open `aleapp_report/index.html`, or search
+   the timeline in Kibana under **ALEAPP timelines**.
+
 ## 5. Stop, start, update
 
 All commands run in the `openrelik-dfir-stack` folder.
@@ -148,7 +161,7 @@ docker exec openrelik-server python admin.py purge-deleted-files
 | --- | --- |
 | `setup.sh` | installs and starts everything; safe to run again |
 | `stop.sh` | stops everything |
-| `docker-compose.override.yml` | adds the UAC, iLEAPP and Elasticsearch workers to OpenRelik |
+| `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP and Elasticsearch workers to OpenRelik |
 | `elk/docker-compose.yml` | Elasticsearch and Kibana |
 | `openrelik/` | OpenRelik itself, created by `setup.sh` (your data is in `openrelik/data`) |
 
@@ -160,6 +173,7 @@ Using an OpenRelik you installed before? Run `./setup.sh /path/to/your/openrelik
 | --- | --- |
 | UAC worker | https://github.com/Guzzy711/openrelik-worker-uac |
 | iLEAPP worker | https://github.com/Guzzy711/openrelik-worker-ileapp |
+| ALEAPP worker | https://github.com/Guzzy711/openrelik-worker-aleapp |
 | Elasticsearch worker | https://github.com/Guzzy711/openrelik-worker-elasticsearch |
 | OpenRelik | https://openrelik.org |
 

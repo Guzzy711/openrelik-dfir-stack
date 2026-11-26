@@ -22,6 +22,16 @@ services:
       - ./data:/usr/share/openrelik/data:z
     command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-ileapp"
 
+  openrelik-worker-aleapp:
+    container_name: openrelik-worker-aleapp
+    image: ghcr.io/guzzy711/openrelik-worker-aleapp:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-aleapp"
+
   openrelik-worker-elasticsearch:
     container_name: openrelik-worker-elasticsearch
     image: ghcr.io/guzzy711/openrelik-worker-elasticsearch:latest
