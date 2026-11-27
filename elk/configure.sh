@@ -141,9 +141,9 @@ data_view super-timeline "$(IFS=,; echo "${PATTERNS[*]/%/-*}")" "Super timeline"
 kibana POST /api/data_views/default '{"data_view_id": "super-timeline", "force": true}'
 
 # Times as ISO 8601 in UTC (2015-03-25T10:15:38.914+00:00), not the browser's time zone;
-# dark mode.
+# dark mode; a new Discover search starts with the Super timeline's columns.
 kibana POST /api/kibana/settings \
-  '{"changes": {"dateFormat": "YYYY-MM-DD[T]HH:mm:ss.SSSZ", "dateFormat:tz": "UTC", "dateFormat:dow": "Monday", "theme:darkMode": true}}'
+  '{"changes": {"dateFormat": "YYYY-MM-DD[T]HH:mm:ss.SSSZ", "dateFormat:tz": "UTC", "dateFormat:dow": "Monday", "theme:darkMode": true, "defaultColumns": ["host.name", "event.category", "event.action", "message"]}}'
 
 # A data view can't fix the columns; a saved Discover search can.
 kibana POST "/api/saved_objects/search/super-timeline?overwrite=true" @- <<'JSON'
