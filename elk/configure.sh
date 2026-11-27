@@ -5,11 +5,11 @@
 #   no replicas (one node), ECS field types, room for many fields, and the super-timeline
 #   ingest pipeline.
 # - The super-timeline pipeline (super-timeline/): fills host.name, event.category,
-#   event.action, event.kind, event.dataset and artifact.name/description the same way
-#   for every tool.
-# - Existing indexes get the same, in the background (update by query). An index from
-#   before artifact.description, where artifact is plain text, is copied into a new index
-#   through the pipeline; the old one is deleted once the copy has every document, and its
+#   event.action, event.kind, event.dataset, artifact.name/description and the ECS
+#   fields the tools have (user, IPs, process, URL, hashes, rule) the same way for every tool.
+# - Existing indexes get the same, in the background (update by query). An index where a
+#   field the pipeline makes an ECS object (artifact, url, user, source, ...) is plain text
+#   is copied into a new index through the pipeline; the old one is deleted once the copy has every document, and its
 #   name becomes an alias of the new one, so exports to it keep working.
 # - Kibana: a data view per tool, the "Super timeline" data view over all of them, and a
 #   "Super timeline" Discover search with fixed columns.
@@ -89,12 +89,15 @@ wait_task() {  # wait_task <task id>: until it completes; prints its response
   done
 }
 
-# Indexes where artifact is plain text (UAC and LEAPP timelines from before
-# artifact.description) can't take the artifact object: copy them through the pipeline.
+# Fields the pipeline makes ECS objects of (artifact; Dissect's url, user, source, server)
+# can't change type in an index that has them as plain text: copy such an index through
+# the pipeline.
+OBJECTS="artifact,$(sed -n '/"ecs_objects"/,/\]/p' "$DIR/rules.json" | tr -d ' \n' | sed 's/.*\[//; s/\].*//; s/"//g')"
 for index in $(indexes); do
-  [[ "$(es GET "/$index/_mapping/field/artifact")" == *'"type"'* ]] || continue
+  mapping="$(es GET "/$index/_mapping/field/$OBJECTS")"
+  [[ "$mapping" == *'"full_name"'* ]] || continue
   target="$index-st$VERSION"
-  echo "  $index: artifact is plain text; copying it to $target through the pipeline"
+  echo "  $index: has text fields that are ECS objects now; copying it to $target through the pipeline"
   es PUT "/$target" '{}' >/dev/null
   task="$(es POST "/_reindex?wait_for_completion=false" \
     "{\"source\": {\"index\": \"$index\"}, \"dest\": {\"index\": \"$target\", \"pipeline\": \"super-timeline\"}}" \

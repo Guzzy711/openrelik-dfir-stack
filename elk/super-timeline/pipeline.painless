@@ -34,6 +34,56 @@ boolean has(String haystack, List needles) {
   return false;
 }
 
+boolean isHex(String value) {
+  for (int i = 0; i < value.length(); i++) {
+    char c = value.charAt(i);
+    if (!((c >= (char) 48 && c <= (char) 57) || (c >= (char) 97 && c <= (char) 102))) { return false; }
+  }
+  return value.length() > 0;
+}
+
+// The map at ctx[group] (file, process, dll), made if missing.
+Map group(Map doc, String name) {
+  if (!(doc.get(name) instanceof Map)) { doc.put(name, new HashMap()); }
+  return (Map) doc.get(name);
+}
+
+// ECS hash fields: <group>.hash.<algo>, lowercase.
+void putHash(Map doc, String name, String algo, String value) {
+  if (value == null) { return; }
+  value = value.trim().toLowerCase();
+  if (algo == 'imphash') {
+    if (isHex(value)) { group(group(doc, name), 'pe').put('imphash', value); }
+    return;
+  }
+  if (algo != 'ssdeep' && algo != 'tlsh' && !isHex(value)) { return; }
+  Map g = group(doc, name);
+  if (!(g.get('hash') instanceof Map)) { g.put('hash', new HashMap()); }
+  ((Map) g.get('hash')).put(algo, value);
+}
+
+// A dotted ECS field (url.original) set to value, unless it has one already.
+void putField(Map doc, String path, def value) {
+  if (value == null) { return; }
+  String[] parts = path.splitOnToken('.');
+  Map m = doc;
+  for (int i = 0; i < parts.length - 1; i++) { m = group(m, parts[i]); }
+  if (m.get(parts[parts.length - 1]) == null) { m.put(parts[parts.length - 1], value); }
+}
+
+// The first value among the names in each of the maps.
+String pickAny(List maps, List names) {
+  for (String name : names) {
+    for (def m : maps) {
+      if (m instanceof Map) {
+        String value = text(((Map) m).get(name));
+        if (value != null) { return value; }
+      }
+    }
+  }
+  return null;
+}
+
 Map event = ctx.event instanceof Map ? ctx.event : new HashMap();
 String module = text(event.module);
 String dataset = text(event.dataset);
@@ -56,7 +106,25 @@ String tool = colon > 0 ? lower.substring(0, colon) : lower;
 if (module == null) { module = ctx.containsKey('parser') && ctx.containsKey('date_time') ? 'plaso' : tool; }
 Map fields = ctx.get(module) instanceof Map ? (Map) ctx.get(module) : null;
 
-event.dataset = key;
+// Tool fields named like an ECS object (Dissect's url, user, source, server) as text: to
+// their ECS field, else under the tool's namespace, so the ECS objects can exist.
+for (String name : params.rules.ecs_objects) {
+  def value = ctx.get(name);
+  if (value == null || value instanceof Map) { continue; }
+  ctx.remove(name);
+  String target = params.rules.ecs_moves.get(name);
+  String asText = text(value);
+  if (name == 'source' && asText != null && (asText.contains('/') || asText.contains('\\')) && !asText.startsWith('$(')) {
+    target = 'log.file.path';
+  }
+  if (target != null) { putField(ctx, target, value); } else { putField(ctx, module + '.' + name, value); }
+}
+
+// event.dataset as ECS recommends, module.dataset (dissect.browser.history); the
+// tool:artifact key stays in data_type, as the workers write it.
+if (ctx.data_type == null) { ctx.data_type = key; }
+String datasetName = colon > 0 && lower.substring(0, colon) == module ? key.substring(colon + 1) : key;
+event.dataset = colon < 0 && key == module ? module : module + '.' + datasetName.replace(':', '.');
 event.module = module;
 
 // @timestamp: Timesketch datetime, else Plaso's timestamp in microseconds.
@@ -141,6 +209,48 @@ if (category.isEmpty()) {
 }
 if (!category.isEmpty()) { event.category = category; }
 
+// ECS fields from the tools' own: event code and provider, rule, user, IPs and ports,
+// process, URL. Hayabusa keeps its fields in details and extra.
+Map extra = ctx.extra instanceof Map ? (Map) ctx.extra : (fields != null && fields.extra instanceof Map ? (Map) fields.extra : null);
+Map hayabusaDetails = ctx.details instanceof Map ? (Map) ctx.details : (fields != null && fields.details instanceof Map ? (Map) fields.details : null);
+List maps = [ctx, fields, hayabusaDetails, extra];
+if (eventId != null) { event.code = eventId; }
+String provider = pickAny(maps, ['Provider_Name', 'source_name', 'provider']);
+if (provider != null) { event.provider = provider; }
+if (tool == 'hayabusa') {
+  putField(ctx, 'rule.name', pickAny(maps, ['rule_title', 'RuleTitle']));
+  putField(ctx, 'rule.id', pickAny(maps, ['rule_id', 'RuleID']));
+  putField(ctx, 'rule.ruleset', 'hayabusa');
+}
+for (Map field : params.rules.ecs_fields) {
+  putField(ctx, field.ecs, pickAny(maps, field.from));
+}
+
+// Hashes, as ECS: file.hash.*, or process.hash.* / dll.hash.* for Sysmon's process
+// creation and image load events. Algorithm from the field name, or the length.
+Map hashLengths = ['32': 'md5', '40': 'sha1', '64': 'sha256', '96': 'sha384', '128': 'sha512'];
+for (String algo : ['md5', 'sha1', 'sha256', 'sha384', 'sha512', 'ssdeep', 'tlsh']) {
+  putHash(ctx, 'file', algo, pick(ctx, fields, [algo, algo.toUpperCase(), algo + '_hash']));
+}
+String plainHash = pick(ctx, fields, ['hash']);
+if (plainHash != null && hashLengths.containsKey(String.valueOf(plainHash.trim().length())) && isHex(plainHash.trim().toLowerCase())) {
+  putHash(ctx, 'file', hashLengths.get(String.valueOf(plainHash.trim().length())), plainHash);
+  String path = pick(ctx, fields, ['path']);
+  if (path != null && !(group(ctx, 'file').containsKey('path'))) { group(ctx, 'file').put('path', path); }
+}
+// Sysmon: Hashes is "SHA1=...,MD5=...,SHA256=...,IMPHASH=...", at the top (Dissect), or in
+// Hayabusa's details.
+Map details = ctx.details instanceof Map ? (Map) ctx.details : (fields != null && fields.details instanceof Map ? (Map) fields.details : null);
+String hashes = pick(ctx, fields, ['Hashes', 'hashes']);
+if (hashes == null && details != null) { hashes = text(details.get('Hashes')); }
+if (hashes != null && hashes.contains('=')) {
+  String target = eventId == '1' ? 'process' : (eventId == '7' ? 'dll' : 'file');
+  for (String pair : hashes.splitOnToken(',')) {
+    int eq = pair.indexOf('=');
+    if (eq > 0) { putHash(ctx, target, pair.substring(0, eq).trim().toLowerCase(), pair.substring(eq + 1)); }
+  }
+}
+
 // artifact.description: the event's own (EventID), else the first artifact rule matching.
 String description = null;
 if (eventId != null && (lower.contains('evtx') || lower.contains('eventlog'))) {
@@ -159,4 +269,5 @@ if (description != null) { artifactField.description = description; }
 ctx.artifact = artifactField;
 event.kind = kind;
 ctx.event = event;
+putField(ctx, 'ecs.version', params.rules.ecs_version);
 ctx.super_timeline_version = params.rules.version;

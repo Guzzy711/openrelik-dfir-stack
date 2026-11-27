@@ -16,14 +16,17 @@
   },
   "expect": {
    "host.name": "INFORMANT-PC",
-   "event.dataset": "dissect:evtx",
+   "event.dataset": "dissect.evtx",
    "event.module": "dissect",
    "event.action": "evtx: EventID 1532",
    "event.category": null,
    "event.kind": "event",
-   "super_timeline_version": 6,
+   "super_timeline_version": 8,
    "artifact.name": "evtx",
-   "artifact.description": "Windows event log record. The EventID and channel say what happened."
+   "artifact.description": "Windows event log record. The EventID and channel say what happened.",
+   "ecs.version": "9.5.0",
+   "event.code": "1532",
+   "data_type": "dissect:evtx"
   }
  },
  {
@@ -190,14 +193,15 @@
   },
   "expect": {
    "host.name": "PC",
-   "event.dataset": "dissect:prefetch",
+   "event.dataset": "dissect.prefetch",
    "event.module": "dissect",
    "event.action": "prefetch: Time",
    "event.category": [
     "process"
    ],
    "timestamp_desc": "ts",
-   "artifact.description": "Prefetch: a program ran on this computer. Shows the program, how many times it ran, its last run times (up to 8) and the files it loaded."
+   "artifact.description": "Prefetch: a program ran on this computer. Shows the program, how many times it ran, its last run times (up to 8) and the files it loaded.",
+   "data_type": "dissect:prefetch"
   }
  },
  {
@@ -221,10 +225,10 @@
     "name": "PC"
    },
    "timestamp_desc": "ts",
-   "super_timeline_version": 6
+   "super_timeline_version": 8
   },
   "expect": {
-   "event.dataset": "dissect:prefetch",
+   "event.dataset": "dissect.prefetch",
    "event.action": "prefetch: Time",
    "event.category": [
     "process"
@@ -253,7 +257,9 @@
    ],
    "event.kind": "alert",
    "event.severity": 3,
-   "artifact.description": "Hayabusa detection: an event log record matched a Sigma or Hayabusa rule. The rule title and level say what was found; check the original event to confirm."
+   "artifact.description": "Hayabusa detection: an event log record matched a Sigma or Hayabusa rule. The rule title and level say what was found; check the original event to confirm.",
+   "rule.name": "Uncommon New Firewall Rule Added In Windows Firewall Exception List",
+   "rule.ruleset": "hayabusa"
   }
  },
  {
@@ -275,7 +281,7 @@
   },
   "expect": {
    "host.name": "PC01",
-   "event.dataset": "hayabusa:detection",
+   "event.dataset": "hayabusa.detection",
    "event.action": "Log Cleared",
    "event.kind": "alert",
    "event.severity": 4
@@ -307,14 +313,16 @@
    "@timestamp": "2026-11-26T10:27:03+00:00",
    "timestamp_desc": "Command Time",
    "data_type": "uac:shell:history",
-   "hostname": "node-northsea-1"
+   "hostname": "node-northsea-1",
+   "command": "sudo su -"
   },
   "expect": {
    "event.action": "shell history: Command Time",
    "event.category": [
     "process"
    ],
-   "artifact.description": "Shell history: commands a user typed in bash or zsh. Without HISTTIMEFORMAT the times are not when each command ran."
+   "artifact.description": "Shell history: commands a user typed in bash or zsh. Without HISTTIMEFORMAT the times are not when each command ran.",
+   "process.command_line": "sudo su -"
   }
  },
  {
@@ -354,7 +362,7 @@
   },
   "expect": {
    "host.name": "node-1",
-   "event.dataset": "uac:bodyfile:entry",
+   "event.dataset": "uac.bodyfile.entry",
    "event.action": "bodyfile entry: Creation Time",
    "event.category": [
     "file"
@@ -415,7 +423,7 @@
   },
   "expect": {
    "host.name": "pixel_ffs",
-   "event.dataset": "aleapp:chrome_downloads",
+   "event.dataset": "aleapp.chrome_downloads",
    "event.action": "Chrome Downloads: Start Time",
    "event.category": [
     "web"
@@ -445,12 +453,14 @@
    "@timestamp": "2019-04-30T18:08:22.618194Z",
    "host.name": "Sec504Student",
    "event.module": "plaso",
-   "event.dataset": "windows:evtx:record",
+   "event.dataset": "plaso.windows.evtx.record",
    "event.action": "windows evtx record: EventID 1102",
    "event.category": [
     "configuration"
    ],
-   "artifact.description": "EventID 1102: The Security log was cleared. Often an attacker covering their tracks."
+   "artifact.description": "EventID 1102: The Security log was cleared. Often an attacker covering their tracks.",
+   "event.provider": "Microsoft-Windows-Eventlog",
+   "event.code": "1102"
   }
  },
  {
@@ -663,6 +673,226 @@
    "artifact.description": "App usage history: which apps were used and when, and when the device was locked or charging. Places a person at the device.",
    "event.category": [
     "process"
+   ]
+  }
+ },
+ {
+  "name": "uac hash_executables sha1 (Timesketch)",
+  "doc": {
+   "message": "F6449AE7F5E9BDD11FD3D19F7444BE1C969015EC  /var/lib/dpkg/info/readline-common.postinst",
+   "@timestamp": "2026-11-26T10:27:19+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:hash_executables:line",
+   "artifact": "hash_executables/hash_executables",
+   "source_file": "hash_executables/hash_executables.sha1",
+   "hostname": "node",
+   "hash": "F6449AE7F5E9BDD11FD3D19F7444BE1C969015EC",
+   "path": "/var/lib/dpkg/info/readline-common.postinst"
+  },
+  "expect": {
+   "file.hash.sha1": "f6449ae7f5e9bdd11fd3d19f7444be1c969015ec",
+   "file.hash.md5": null,
+   "file.path": "/var/lib/dpkg/info/readline-common.postinst",
+   "event.category": [
+    "file"
+   ]
+  }
+ },
+ {
+  "name": "uac hash_executables md5 (Elasticsearch bulk)",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:19+00:00",
+   "message": "3ae7...",
+   "event": {
+    "action": "UAC Collection Time",
+    "dataset": "uac:hash_executables:line",
+    "module": "uac"
+   },
+   "host": {
+    "name": "node"
+   },
+   "file": {
+    "path": "/usr/bin/x"
+   },
+   "uac": {
+    "hash": "3ae73894d865693725683bc9a0399b80",
+    "path": "/usr/bin/x"
+   }
+  },
+  "expect": {
+   "file.hash.md5": "3ae73894d865693725683bc9a0399b80",
+   "file.path": "/usr/bin/x"
+  }
+ },
+ {
+  "name": "hayabusa Sysmon 1 hashes go to process.hash",
+  "doc": {
+   "message": "[med] Potentially Suspicious Rundll32 Activity",
+   "@timestamp": "2019-04-30T12:00:00+00:00",
+   "timestamp_desc": "Event Time",
+   "data_type": "hayabusa:detection",
+   "rule_title": "Potentially Suspicious Rundll32 Activity",
+   "level": "medium",
+   "computer": "IEWIN7",
+   "channel": "Sysmon",
+   "event_id": "1",
+   "details": {
+    "Proc": "C:\\Windows\\System32\\rundll32.exe",
+    "Hashes": "SHA1=F3BA3415DD068A8871F285570BEA2E29874CBFF1,MD5=C73BA51880F5A7FB20C84185A23212EF,SHA256=01B407AF0200B66A34D9B1FA6D9EAAB758EFA36A36BB99B554384F59F8690B1A,IMPHASH=F27A7FC3A53E74F45BE370131953896A",
+    "Cmdline": "rundll32.exe x.dll,Start",
+    "ParentCmdline": "cmd.exe /c x",
+    "User": "IEWIN7\\IEUser"
+   }
+  },
+  "expect": {
+   "process.hash.sha1": "f3ba3415dd068a8871f285570bea2e29874cbff1",
+   "process.hash.md5": "c73ba51880f5a7fb20c84185a23212ef",
+   "process.hash.sha256": "01b407af0200b66a34d9b1fa6d9eaab758efa36a36bb99b554384f59f8690b1a",
+   "process.pe.imphash": "f27a7fc3a53e74f45be370131953896a",
+   "process.executable": "C:\\Windows\\System32\\rundll32.exe",
+   "file": null,
+   "process.command_line": "rundll32.exe x.dll,Start",
+   "process.parent.command_line": "cmd.exe /c x",
+   "user.name": "IEWIN7\\IEUser"
+  }
+ },
+ {
+  "name": "dissect evtx Sysmon 7 hashes go to dll.hash",
+  "doc": {
+   "message": "evtx | EventID: 7",
+   "@timestamp": "2019-04-30T12:00:00+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:evtx",
+   "EventID": "7",
+   "Channel": "Microsoft-Windows-Sysmon/Operational",
+   "hostname": "PC",
+   "Hashes": "MD5=C73BA51880F5A7FB20C84185A23212EF,SHA256=01B407AF0200B66A34D9B1FA6D9EAAB758EFA36A36BB99B554384F59F8690B1A"
+  },
+  "expect": {
+   "dll.hash.md5": "c73ba51880f5a7fb20c84185a23212ef",
+   "dll.hash.sha256": "01b407af0200b66a34d9b1fa6d9eaab758efa36a36bb99b554384f59f8690b1a"
+  }
+ },
+ {
+  "name": "plaso sha256_hash goes to file.hash.sha256",
+  "doc": {
+   "data_type": "fs:stat",
+   "date_time": {
+    "timestamp": 1
+   },
+   "parser": "filestat",
+   "timestamp": 1795754125283340,
+   "timestamp_desc": "Content Modification Time",
+   "message": "x",
+   "sha256_hash": "ee2278c513a42eb58b896e3696fabb5b2ee84c7a12cfc323993b1dbd74c75f3b"
+  },
+  "expect": {
+   "file.hash.sha256": "ee2278c513a42eb58b896e3696fabb5b2ee84c7a12cfc323993b1dbd74c75f3b"
+  }
+ },
+ {
+  "name": "a hash field that is not hex is left alone",
+  "doc": {
+   "message": "x",
+   "@timestamp": "2024-01-01T00:00:00+00:00",
+   "data_type": "dissect:something",
+   "hash": "not-a-hash-but-32-characters-ok!",
+   "hostname": "PC",
+   "path": "/x"
+  },
+  "expect": {
+   "file": null
+  }
+ },
+ {
+  "name": "dissect evtx 4624 user, IP and port to ECS",
+  "doc": {
+   "message": "evtx | EventID: 4624",
+   "@timestamp": "2015-03-25T10:00:00+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:evtx",
+   "EventID": "4624",
+   "Channel": "Security",
+   "Provider_Name": "Microsoft-Windows-Security-Auditing",
+   "hostname": "PC",
+   "TargetUserName": "admin",
+   "SubjectUserName": "PC$",
+   "IpAddress": "10.1.2.3",
+   "IpPort": "50123",
+   "source": "C:\\Windows\\System32\\winevt\\Logs\\Security.evtx"
+  },
+  "expect": {
+   "event.code": "4624",
+   "event.provider": "Microsoft-Windows-Security-Auditing",
+   "user.name": "admin",
+   "source.ip": "10.1.2.3",
+   "source.port": "50123",
+   "log.file.path": "C:\\Windows\\System32\\winevt\\Logs\\Security.evtx",
+   "source.address": null
+  }
+ },
+ {
+  "name": "dissect browser.history url, user and source move to ECS",
+  "doc": {
+   "message": "browser.history | url: http://x",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:browser.history",
+   "hostname": "PC",
+   "url": "http://example.com/a",
+   "user": "informant",
+   "source": "C:\\Users\\informant\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History",
+   "server": "example.com"
+  },
+  "expect": {
+   "url.original": "http://example.com/a",
+   "user.name": "informant",
+   "log.file.path": "C:\\Users\\informant\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History",
+   "server.address": "example.com",
+   "event.dataset": "dissect.browser.history"
+  }
+ },
+ {
+  "name": "dissect tasks source that is not a path goes under dissect",
+  "doc": {
+   "message": "tasks",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:tasks",
+   "hostname": "PC",
+   "source": "$(@%systemroot%\\system32\\winsatapi.dll,-113)"
+  },
+  "expect": {
+   "dissect.source": "$(@%systemroot%\\system32\\winsatapi.dll,-113)",
+   "log": null
+  }
+ },
+ {
+  "name": "ECS fields already set are kept",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:03+00:00",
+   "message": "/etc/passwd",
+   "event": {
+    "action": "Creation Time",
+    "dataset": "uac:bodyfile:entry",
+    "module": "uac"
+   },
+   "host": {
+    "name": "node-1"
+   },
+   "user": {
+    "name": "root"
+   },
+   "uac": {
+    "user": "other"
+   }
+  },
+  "expect": {
+   "user.name": "root",
+   "event.dataset": "uac.bodyfile.entry",
+   "data_type": "uac:bodyfile:entry",
+   "event.category": [
+    "file"
    ]
   }
  }

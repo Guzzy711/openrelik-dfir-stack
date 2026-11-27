@@ -123,7 +123,7 @@
     {"any": ["browser", "chrome", "chromium", "firefox", "edge.", "msedge", "microsoft edge", "safari", "brave", "opera", "webcache", "iexplore"], "description": "Browser history: web pages visited, with visit times and counts."},
 
     {"any": ["bodyfile", "fs:stat", "filestat"], "description": "File system timestamps (modified, accessed, changed, created) of every file. Look for files created or changed around the time of the incident."},
-    {"any": ["hash_executables"], "description": "Hashes of executable files, to check against known good and malware lists."},
+    {"any": ["hash_executables"], "description": "Hashes of executable files (MD5 and SHA1 by default; SHA256 when set in uac.conf), in file.hash.*: check them against known good and malware lists."},
     {"any": ["bashhistory", "shell:history", "zshhistory", "bash_history"], "description": "Shell history: commands a user typed in bash or zsh. Without HISTTIMEFORMAT the times are not when each command ran."},
     {"any": ["authlog", "auth.log", "secure"], "description": "Authentication log: logins, SSH sessions, sudo use and failed attempts, with source IPs."},
     {"any": ["btmp", "system/lastb"], "description": "btmp (lastb): failed login attempts, with source."},

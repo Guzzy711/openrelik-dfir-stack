@@ -1,5 +1,24 @@
 {
-  "version": 6,
+  "version": 8,
+  "ecs_version": "9.5.0",
+  "ecs_objects": ["url", "user", "source", "server", "destination", "client", "rule", "log",
+    "process", "file", "dll", "registry", "service", "group", "network", "os", "agent",
+    "observer", "threat", "error", "ecs", "related", "organization"],
+  "ecs_moves": {"url": "url.original", "user": "user.name", "server": "server.address",
+    "client": "client.address", "process": "process.name", "file": "file.path",
+    "registry": "registry.path", "service": "service.name", "group": "group.name"},
+  "ecs_fields": [
+    {"ecs": "user.name", "from": ["TargetUserName", "TgtUser", "username", "user_name", "UserName", "User", "SubjectUserName", "SrcUser", "AccountName"]},
+    {"ecs": "source.ip", "from": ["IpAddress", "SrcIP", "SourceIp", "SourceAddress", "src_ip", "source_ip", "client_ip", "ip_address"]},
+    {"ecs": "source.port", "from": ["IpPort", "SrcPort", "SourcePort", "src_port"]},
+    {"ecs": "destination.ip", "from": ["DestinationIp", "TgtIP", "DstIP", "DestAddress", "dst_ip"]},
+    {"ecs": "destination.port", "from": ["DestinationPort", "TgtPort", "DstPort", "DestPort", "dst_port"]},
+    {"ecs": "process.command_line", "from": ["CommandLine", "Cmdline", "CmdLine", "command_line", "cmdline", "command"]},
+    {"ecs": "process.parent.command_line", "from": ["ParentCommandLine", "ParentCmdline", "ParentCmd"]},
+    {"ecs": "process.executable", "from": ["Image", "NewProcessName", "Proc", "ProcessName"]},
+    {"ecs": "process.parent.executable", "from": ["ParentImage", "ParentProcessName"]},
+    {"ecs": "url.original", "from": ["URL", "Url"]}
+  ],
   "host_fields": ["hostname", "computer", "computer_name", "Computer", "source_file"],
   "time_labels": {
     "ts": "Time",

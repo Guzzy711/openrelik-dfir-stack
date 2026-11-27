@@ -151,13 +151,31 @@ many times it ran, its last run times (up to 8) and the files it loaded."* Windo
 rows describe their EventID (*"EventID 4624: Successful logon. The logon type says how: ..."*).
 Click a row in Discover to see them, or add `artifact.description` as a column.
 
+The fields follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs)
+(ECS 9.5) wherever the tools have the data, so they line up across tools:
+
+| ECS fields | From |
+| --- | --- |
+| `host.name`, `@timestamp`, `message`, `event.*` (`dataset` as `tool.artifact`, `code` = EventID, `provider`, `kind`, `severity`) | every tool |
+| `user.name`, `source.ip`/`port`, `destination.ip`/`port` | event logs (Dissect, Plaso), Hayabusa |
+| `process.executable`, `process.command_line`, `process.parent.*` | event logs, Hayabusa, shell history |
+| `file.path`, `file.hash.*`, `process.hash.*`, `dll.hash.*`, `*.pe.imphash` | UAC executable hashes, Sysmon, Plaso |
+| `url.original`, `log.file.path`, `server.address` | browser history and the file a record came from (Dissect) |
+| `rule.name`, `rule.id`, `rule.ruleset` | Hayabusa |
+
+Not ECS, because ECS has no field for them: `artifact.name` and `artifact.description`,
+`data_type` (the tool's own `tool:artifact`), `timestamp_desc` (what the time means) and
+the tools' other fields, which keep their names.
+
 In Kibana open **Discover**, click **Open** (top right) and pick **Super timeline**. Filter with
 the search bar, for example:
 
 - `event.category: process and host.name: PC01` — everything that ran on PC01
 - `event.category: authentication` — logons on every computer
 - `event.kind: alert` — only Hayabusa detections
-- `event.dataset: dissect:prefetch` — one artifact
+- `event.dataset: dissect.prefetch` — one artifact
+- `file.hash.sha1: f6449ae7f5e9bdd11fd3d19f7444be1c969015ec` — one file on every computer
+- `user.name: admin and event.code: 4624` — where admin logged on
 - `artifact.description: *persist*` — everything described as a persistence location
 
 Elasticsearch fills these fields while it indexes (the `super-timeline` ingest pipeline in
