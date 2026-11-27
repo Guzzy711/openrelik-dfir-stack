@@ -42,6 +42,16 @@ services:
       - ./data:/usr/share/openrelik/data:z
     command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-dissect"
 
+  openrelik-worker-takajo:
+    container_name: openrelik-worker-takajo
+    image: ghcr.io/guzzy711/openrelik-worker-takajo:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=2 --loglevel=INFO -Q openrelik-worker-takajo"
+
   openrelik-worker-elasticsearch:
     container_name: openrelik-worker-elasticsearch
     image: ghcr.io/guzzy711/openrelik-worker-elasticsearch:latest

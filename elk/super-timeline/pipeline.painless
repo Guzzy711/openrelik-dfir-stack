@@ -1,0 +1,128 @@
+// Super timeline: fills the ECS fields every tool shares, so one Kibana data view can show
+// all timelines with the same columns: @timestamp, host.name, event.category, event.action,
+// message. Handles both shapes the workers write (Timesketch JSONL with data_type, and
+// Elasticsearch bulk NDJSON with event.module/event.dataset and the tool's fields under
+// <module>) and Plaso's psort json_line.
+//
+// The keyword tables are in rules.json (the script's params). elk/configure.sh installs the pipeline.
+
+String text(def value) {
+  if (value == null) { return null; }
+  if (value instanceof List) { return ((List) value).isEmpty() ? null : text(((List) value).get(0)); }
+  String s = value.toString().trim();
+  return s.isEmpty() || s == '-' ? null : s;
+}
+
+// The first of the fields with a value, at the top level or under the tool's namespace.
+String pick(Map doc, Map tool, List names) {
+  for (String name : names) {
+    String value = text(doc.get(name));
+    if (value == null && tool != null) { value = text(tool.get(name)); }
+    if (value != null) { return value; }
+  }
+  return null;
+}
+
+boolean has(String haystack, List needles) {
+  for (String needle : needles) {
+    if (haystack.contains(needle)) { return true; }
+  }
+  return false;
+}
+
+Map event = ctx.event instanceof Map ? ctx.event : new HashMap();
+String module = text(event.module);
+String dataset = text(event.dataset);
+
+// The artifact key, tool:artifact, such as dissect:prefetch or windows:evtx:record.
+String key = text(ctx.data_type);
+if (key == null && dataset != null) {
+  if (module != null && dataset.startsWith(module + '.')) {
+    key = module + ':' + dataset.substring(module.length() + 1);
+  } else if (module != null && !dataset.startsWith(module + ':')) {
+    key = module + ':' + dataset;
+  } else {
+    key = dataset;
+  }
+}
+if (key == null) { key = module != null ? module : 'unknown'; }
+String lower = key.toLowerCase();
+int colon = lower.indexOf(':');
+String tool = colon > 0 ? lower.substring(0, colon) : lower;
+if (module == null) { module = ctx.containsKey('parser') && ctx.containsKey('date_time') ? 'plaso' : tool; }
+Map fields = ctx.get(module) instanceof Map ? (Map) ctx.get(module) : null;
+
+event.dataset = key;
+event.module = module;
+
+// @timestamp: Timesketch datetime, else Plaso's timestamp in microseconds.
+if (ctx['@timestamp'] == null) {
+  String datetime = text(ctx.datetime);
+  if (datetime != null) {
+    ctx['@timestamp'] = datetime;
+  } else if (ctx.timestamp instanceof Number) {
+    long micros = ((Number) ctx.timestamp).longValue();
+    long seconds = micros / 1000000L;
+    long rest = micros % 1000000L;
+    if (rest < 0) { seconds -= 1; rest += 1000000L; }
+    ctx['@timestamp'] = Instant.ofEpochSecond(seconds, rest * 1000L).toString();
+  }
+}
+
+// host.name
+Map host = ctx.host instanceof Map ? ctx.host : new HashMap();
+if (text(host.name) == null) {
+  String name = pick(ctx, fields, params.host_fields);
+  if (name != null) { host.name = name; ctx.host = host; }
+}
+
+// What the timestamp means: the Timesketch field, else the bulk format's event.action
+// (kept in timestamp_desc so the pipeline can run on its own output again).
+String desc = text(ctx.timestamp_desc);
+if (desc == null && !ctx.containsKey('super_timeline_version')) { desc = text(event.action); }
+if (desc != null) { ctx.timestamp_desc = desc; }
+if (desc != null && params.time_labels.containsKey(desc)) { desc = params.time_labels.get(desc); }
+
+// The artifact as people say it: LEAPP's artifact name, else the key without the tool.
+String label = pick(ctx, fields, ['artifact']);
+if (label == null) {
+  label = colon > 0 && tool != 'windows' && module != 'plaso' ? key.substring(colon + 1) : key;
+  label = label.replace(':', ' ').replace('.', ' ').replace('_', ' ');
+}
+
+List category = new ArrayList();
+String kind = 'event';
+String eventId = pick(ctx, fields, ['EventID', 'event_identifier', 'event_id']);
+String channel = pick(ctx, fields, ['Channel', 'channel']);
+
+if (tool == 'hayabusa') {
+  kind = 'alert';
+  category.add('intrusion_detection');
+  String rule = pick(ctx, fields, ['rule_title', 'RuleTitle']);
+  event.action = rule != null ? rule : 'Hayabusa detection';
+  String level = pick(ctx, fields, ['level', 'Level']);
+  if (level != null && params.severity.containsKey(level.toLowerCase())) {
+    event.severity = params.severity.get(level.toLowerCase());
+  }
+} else if (eventId != null && (lower.contains('evtx') || lower.contains('eventlog'))) {
+  event.action = label + ': EventID ' + eventId;
+  if (channel != null && channel.toLowerCase().contains('sysmon') && params.sysmon_ids.containsKey(eventId)) {
+    category.addAll(params.sysmon_ids.get(eventId));
+  } else if (params.event_ids.containsKey(eventId)) {
+    category.addAll(params.event_ids.get(eventId));
+  }
+} else {
+  event.action = desc != null ? label + ': ' + desc : label;
+}
+
+// Categories by keyword in the artifact key (and LEAPP's artifact name): first rule wins.
+if (category.isEmpty()) {
+  String haystack = lower + ' ' + label.toLowerCase();
+  for (Map rule : params.rules) {
+    if (has(haystack, rule.any)) { category.addAll(rule.category); break; }
+  }
+}
+if (!category.isEmpty()) { event.category = category; }
+event.kind = kind;
+ctx.event = event;
+ctx.super_timeline_version = params.version;

@@ -1,0 +1,95 @@
+{
+  "version": 2,
+  "host_fields": ["hostname", "computer", "computer_name", "Computer", "source_file"],
+  "time_labels": {
+    "ts": "Time",
+    "ts_mtime": "Modified",
+    "ts_atime": "Accessed",
+    "ts_ctime": "Changed",
+    "ts_btime": "Created",
+    "ts_end": "End",
+    "date": "Date",
+    "last_modified": "Last modified",
+    "last_run_date": "Last run",
+    "regf_mtime": "Key last written",
+    "lnk_atime": "Link accessed",
+    "lnk_ctime": "Link created",
+    "lnk_mtime": "Link modified",
+    "target_atime": "Target accessed",
+    "target_ctime": "Target created",
+    "target_mtime": "Target modified",
+    "start_boundary": "Trigger start",
+    "end_boundary": "Trigger end"
+  },
+  "severity": {
+    "info": 1, "informational": 1, "low": 2, "med": 3, "medium": 3, "high": 4,
+    "crit": 5, "critical": 5
+  },
+  "event_ids": {
+    "4624": ["authentication", "session"], "4625": ["authentication"],
+    "4634": ["authentication", "session"], "4647": ["authentication", "session"],
+    "4648": ["authentication"], "4672": ["authentication"], "4768": ["authentication"],
+    "4769": ["authentication"], "4770": ["authentication"], "4771": ["authentication"],
+    "4776": ["authentication"], "4778": ["authentication", "session"],
+    "4779": ["authentication", "session"], "1149": ["authentication", "session"],
+    "4720": ["iam"], "4722": ["iam"], "4723": ["iam"], "4724": ["iam"], "4725": ["iam"],
+    "4726": ["iam"], "4728": ["iam"], "4732": ["iam"], "4738": ["iam"], "4740": ["iam"],
+    "4756": ["iam"], "4673": ["iam"], "4798": ["iam"], "4799": ["iam"],
+    "4688": ["process"], "4689": ["process"], "4103": ["process"], "4104": ["process"],
+    "7045": ["configuration"], "4697": ["configuration"], "4698": ["configuration"],
+    "4699": ["configuration"], "4700": ["configuration"], "4701": ["configuration"],
+    "4702": ["configuration"], "7040": ["configuration"], "4719": ["configuration"],
+    "1102": ["configuration"], "104": ["configuration"],
+    "7034": ["configuration"], "7035": ["configuration"], "7036": ["configuration"],
+    "4907": ["configuration"], "4616": ["host"], "6005": ["host"], "6006": ["host"],
+    "6008": ["host"], "6009": ["host"], "12": ["host"], "13": ["host"], "1074": ["host"],
+    "4657": ["registry"],
+    "4656": ["file"], "4663": ["file"], "5140": ["network", "file"], "5145": ["network", "file"],
+    "5156": ["network"], "5157": ["network"]
+  },
+  "sysmon_ids": {
+    "1": ["process"], "3": ["network"], "5": ["process"], "7": ["library"],
+    "8": ["process"], "10": ["process"], "11": ["file"], "12": ["registry"],
+    "13": ["registry"], "14": ["registry"], "15": ["file"], "22": ["network"],
+    "23": ["file"], "26": ["file"]
+  },
+  "rules": [
+    {"category": ["malware"], "any": ["defender", "antivirus", "quarantine", "mpdetection"]},
+    {"category": ["process"], "any": [
+      "prefetch", "amcache", "shimcache", "appcompat", ":bam", "userassist", "srum",
+      "process", "execution", "bashhistory", "shell:history", "zshhistory",
+      "powershell_history", "consolehost", "cmdline", "commandline", "activitiescache",
+      "notifications", "screentime", "knowledgec", "biome"
+    ]},
+    {"category": ["authentication"], "any": [
+      "authlog", "auth.log", "wtmp", "btmp", "lastlog", "logon", "login", "sudo", "ssh",
+      "secure", "faillog"
+    ]},
+    {"category": ["session"], "any": ["utmp", "rdp", "terminal_server", "remoteaccess", "anydesk", "teamviewer"]},
+    {"category": ["configuration"], "any": [
+      "services", "tasks", "runkeys", "run_keys", "startup", "cron", "systemd", "autorun",
+      "persistence", "policy", "auditpol", "firewall", "launchagent", "launchdaemon",
+      "appinit", "alternateshell", "bootshell"
+    ]},
+    {"category": ["registry"], "any": ["shellbags", "mru", "registry", "regf", "recentdocs", "typedpaths"]},
+    {"category": ["web"], "any": [
+      "browser", "chrome", "chromium", "firefox", "edge", "safari", "brave", "opera",
+      "webcache", "webkit", "cookies", "iexplore"
+    ]},
+    {"category": ["file"], "any": [
+      "fs:", "filesystem", "bodyfile", "mft", "usnjrnl", "lnk", "jumplist", "recyclebin",
+      "thumbcache", "downloads", "hash_executables", "file_history", "photos", "media"
+    ]},
+    {"category": ["network"], "any": [
+      "network", "wlan", "wifi", "wi-fi", "dns", "dhcp", "bluetooth", "netstat", ":arp",
+      "vpn", "socket", "interfaces", "hosts", "location", "cell"
+    ]},
+    {"category": ["email"], "any": ["mail", "outlook"]},
+    {"category": ["package"], "any": [
+      "package", ":apt", "dpkg", "rpm", "yum", "installed", "applications", "appstore",
+      "programs", "uninstall"
+    ]},
+    {"category": ["iam"], "any": ["users", "accounts", "groups", "passwd", "shadow", ":sam"]},
+    {"category": ["host"], "any": ["live_response", "uac:system", "collection:log", "system_info", "sysinfo", "osinfo"]}
+  ]
+}

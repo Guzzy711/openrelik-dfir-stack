@@ -9,7 +9,11 @@ One script that gives you a forensic workbench on your own computer:
 - **Dissect and Hayabusa worker**: reads Windows disk images (E01, VMDK, VHDX, raw) and KAPE
   collections with [Dissect](https://github.com/fox-it/dissect), and finds suspicious events
   in event logs with [Hayabusa](https://github.com/Yamato-Security/hayabusa).
-- **Elasticsearch + Kibana**: search and graph the timelines.
+- **Takajo worker**: triage of Windows event logs with
+  [Takajo](https://github.com/Yamato-Security/takajo): logons, suspicious processes,
+  services, tasks, IOC lists and a MITRE ATT&CK summary, from Hayabusa's results.
+- **Elasticsearch + Kibana**: search and graph the timelines, every tool together in one
+  **Super timeline** with the same columns.
 
 Everything runs in Docker on your machine. Nothing is sent anywhere.
 
@@ -115,16 +119,47 @@ Log in to OpenRelik as `admin` with the password from step 2.
    - **Dissect: Windows artifacts**: preset *Windows triage* parses event logs, prefetch,
      Amcache, Shimcache, registry, LNK, jump lists, shellbags, browsers and more.
    - **Hayabusa: Event log detections**: finds suspicious events with Sigma rules.
-3. Add **Elasticsearch Export** after each, with index name `dissect-mypc` and
-   `hayabusa-mypc`, *Parse input as JSON lines* on.
-4. Click **Run**. In Kibana, open **Dissect timelines** or **Hayabusa detections**. The task
-   reports in OpenRelik show the computer name, OS and the detections per level.
+   - **Takajo: Hayabusa results analysis**: runs Hayabusa itself, then Takajo, so add it
+     directly on the image (not after the Hayabusa task). Also takes `.evtx` files.
+3. Add **Elasticsearch Export** after Dissect and after Hayabusa, with index name
+   `dissect-mypc` and `hayabusa-mypc`, *Parse input as JSON lines* on. Not after Takajo:
+   its results are CSV files and an HTML report.
+4. Click **Run**. In Kibana, open the **Super timeline** (see below). The task reports in
+   OpenRelik show the computer name, OS and the detections per level. Download Takajo's
+   `*_takajo_html_report.zip` and open `index.html` for a summary per rule and computer;
+   start with `TimelineSuspiciousProcesses.csv` and `TimelineLogon.csv`.
 
-**Super-timeline of everything:** run **Plaso Log2Timeline** on the image, then **Plaso Psort**
+**Everything Plaso finds:** run **Plaso Log2Timeline** on the image, then **Plaso Psort**
 with output format `json_line`, then **Elasticsearch Export** (index `openrelik-mypc`). This
-takes much longer, and shows in Kibana under **OpenRelik exports**.
+takes much longer, and shows in the Super timeline too.
 
-## 5. Stop, start, update
+## 5. The Super timeline
+
+Every timeline you export, from any tool, lands in one Kibana view with the same columns:
+
+| Column | What it shows |
+| --- | --- |
+| `@timestamp` | when it happened |
+| `host.name` | the computer or phone |
+| `event.category` | the [ECS category](https://www.elastic.co/guide/en/ecs/current/ecs-allowed-values-event-category.html): `process`, `authentication`, `file`, `registry`, `network`, `web`, `configuration`, `intrusion_detection`, ... |
+| `event.action` | the artifact and what the time means (`lnk: Target modified`, `evtx: EventID 4624`), or the Hayabusa rule |
+| `message` | the details |
+
+In Kibana open **Discover**, click **Open** (top right) and pick **Super timeline**. Filter with
+the search bar, for example:
+
+- `event.category: process and host.name: PC01` — everything that ran on PC01
+- `event.category: authentication` — logons on every computer
+- `event.kind: alert` — only Hayabusa detections
+- `event.dataset: dissect:prefetch` — one artifact
+
+Elasticsearch fills these fields while it indexes (the `super-timeline` ingest pipeline in
+`elk/super-timeline/`). Artifacts without a clear ECS category have no `event.category`;
+`event.dataset` always says what they are. To add or change categories, edit
+`elk/super-timeline/rules.json`, raise its `version`, and run `elk/configure.sh`: it updates
+the timelines you already have in the background.
+
+## 6. Stop, start, update
 
 All commands run in the `openrelik-dfir-stack` folder.
 
@@ -152,7 +187,8 @@ docker exec -it openrelik-server python admin.py change-password admin
 ```
 
 **Kibana shows no data**
-- Check that the time range (top right in Discover) covers the evidence.
+- Check that the time range (top right in Discover) covers the evidence: in the Super
+  timeline that can be years, for example *Last 15 years*.
 - Check that the Elasticsearch Export task finished in OpenRelik, and that *Parse input as
   JSON lines* was on.
 - See which indexes exist: http://localhost:9200/_cat/indices?v
@@ -181,8 +217,10 @@ docker exec openrelik-server python admin.py purge-deleted-files
 | --- | --- |
 | `setup.sh` | installs and starts everything; safe to run again |
 | `stop.sh` | stops everything |
-| `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP, Dissect/Hayabusa and Elasticsearch workers to OpenRelik |
+| `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP, Dissect/Hayabusa, Takajo and Elasticsearch workers to OpenRelik |
 | `elk/docker-compose.yml` | Elasticsearch and Kibana |
+| `elk/configure.sh` | index templates, the Super timeline pipeline and Kibana views; `setup.sh` runs it |
+| `elk/super-timeline/` | the pipeline (`pipeline.painless`), its categories (`rules.json`) and a test (`test_pipeline.py`) |
 | `openrelik/` | OpenRelik itself, created by `setup.sh` (your data is in `openrelik/data`) |
 
 Using an OpenRelik you installed before? Run `./setup.sh /path/to/your/openrelik`.
@@ -195,6 +233,7 @@ Using an OpenRelik you installed before? Run `./setup.sh /path/to/your/openrelik
 | iLEAPP worker | https://github.com/Guzzy711/openrelik-worker-ileapp |
 | ALEAPP worker | https://github.com/Guzzy711/openrelik-worker-aleapp |
 | Dissect and Hayabusa worker | https://github.com/Guzzy711/openrelik-worker-dissect |
+| Takajo worker | https://github.com/Guzzy711/openrelik-worker-takajo |
 | Elasticsearch worker | https://github.com/Guzzy711/openrelik-worker-elasticsearch |
 | OpenRelik | https://openrelik.org |
 
