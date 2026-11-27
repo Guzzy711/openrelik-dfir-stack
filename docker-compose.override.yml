@@ -32,6 +32,16 @@ services:
       - ./data:/usr/share/openrelik/data:z
     command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-aleapp"
 
+  openrelik-worker-macapt:
+    container_name: openrelik-worker-macapt
+    image: ghcr.io/guzzy711/openrelik-worker-macapt:latest
+    restart: always
+    environment:
+      - REDIS_URL=redis://openrelik-redis:6379
+    volumes:
+      - ./data:/usr/share/openrelik/data:z
+    command: "celery --app=src.app worker --task-events --concurrency=1 --loglevel=INFO -Q openrelik-worker-macapt"
+
   openrelik-worker-dissect:
     container_name: openrelik-worker-dissect
     image: ghcr.io/guzzy711/openrelik-worker-dissect:latest

@@ -21,7 +21,7 @@
    "event.action": "evtx: EventID 1532",
    "event.category": null,
    "event.kind": "event",
-   "super_timeline_version": 8,
+   "super_timeline_version": 9,
    "artifact.name": "evtx",
    "artifact.description": "Windows event log record. The EventID and channel say what happened.",
    "ecs.version": "9.5.0",
@@ -225,7 +225,7 @@
     "name": "PC"
    },
    "timestamp_desc": "ts",
-   "super_timeline_version": 8
+   "super_timeline_version": 9
   },
   "expect": {
    "event.dataset": "dissect.prefetch",
@@ -894,6 +894,82 @@
    "event.category": [
     "file"
    ]
+  }
+ },
+ {
+  "name": "macapt Quarantine is a downloaded file, not Defender (Timesketch)",
+  "doc": {
+   "message": "Quarantine: Safari | https://example.com/a.dmg",
+   "datetime": "2024-08-01T12:30:00+00:00",
+   "@timestamp": "2024-08-01T12:30:00+00:00",
+   "timestamp": 1722515400000000,
+   "timestamp_desc": "TimeStamp",
+   "data_type": "macapt:quarantine",
+   "artifact": "Quarantine",
+   "source_file": "mymac",
+   "hostname": "Alices-MacBook",
+   "agentname": "Safari",
+   "dataurlstring": "https://example.com/a.dmg"
+  },
+  "expect": {
+   "host.name": "Alices-MacBook",
+   "event.dataset": "macapt.quarantine",
+   "event.module": "macapt",
+   "event.action": "Quarantine: TimeStamp",
+   "event.category": [
+    "file"
+   ],
+   "artifact.name": "Quarantine",
+   "artifact.description": "macOS quarantine events: files downloaded or received (browsers, mail, AirDrop), with the app, source URL and time. Gatekeeper checks these files when they are first opened."
+  }
+ },
+ {
+  "name": "macapt file system entry (Elasticsearch)",
+  "doc": {
+   "@timestamp": "2024-08-01T12:30:00+00:00",
+   "message": "[m.cb] /Users/alice/a.txt (0o100644, uid 501, gid 20, 12 bytes)",
+   "event": {
+    "action": "Content Modification Time",
+    "dataset": "macapt.fs.entry",
+    "module": "macapt"
+   },
+   "host": {
+    "name": "Alices-MacBook"
+   },
+   "macapt": {
+    "artifact": "File system",
+    "source_file": "mymac",
+    "path": "/Users/alice/a.txt",
+    "macb": "m.cb"
+   }
+  },
+  "expect": {
+   "host.name": "Alices-MacBook",
+   "event.dataset": "macapt.fs.entry",
+   "event.category": [
+    "file"
+   ],
+   "artifact.name": "File system",
+   "artifact.description": "File system timestamps (modified, accessed, changed, created) of every file on the APFS volume."
+  }
+ },
+ {
+  "name": "macapt Safari keeps the browser rules (Timesketch)",
+  "doc": {
+   "message": "Safari: HISTORY | https://example.com",
+   "@timestamp": "2024-08-01T12:30:00+00:00",
+   "timestamp_desc": "Date",
+   "data_type": "macapt:safari",
+   "artifact": "Safari",
+   "source_file": "mymac"
+  },
+  "expect": {
+   "host.name": "mymac",
+   "event.category": [
+    "web"
+   ],
+   "event.action": "Safari: Date",
+   "artifact.description": "Browser history: web pages visited, with visit times and counts."
   }
  }
 ]

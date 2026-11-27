@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Configure Elasticsearch and Kibana for the stack's timelines. Safe to run again.
 #
-# - Index templates for uac-*, ileapp-*, aleapp-*, dissect-*, hayabusa-* and openrelik-*:
+# - Index templates for uac-*, ileapp-*, aleapp-*, macapt-*, dissect-*, hayabusa-* and openrelik-*:
 #   no replicas (one node), ECS field types, room for many fields, and the super-timeline
 #   ingest pipeline.
 # - The super-timeline pipeline (super-timeline/): fills host.name, event.category,
@@ -20,7 +20,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)/super-timeline"
 ES="${ES:-http://localhost:9200}"
 KIBANA="${KIBANA:-http://localhost:5601}"
-PATTERNS=(uac ileapp aleapp dissect hayabusa openrelik)
+PATTERNS=(uac ileapp aleapp macapt dissect hayabusa openrelik)
 VERSION="$(sed -n 's/^ *"version": *\([0-9][0-9]*\).*/\1/p' "$DIR/rules.json" | head -1)"
 
 es() {  # es <method> <path> [body]: the body is read from stdin when it is "-"
@@ -134,6 +134,7 @@ data_view() {  # data_view <id> <pattern> <name>
 data_view uac "uac-*" "UAC timelines"
 data_view ileapp "ileapp-*" "iLEAPP timelines"
 data_view aleapp "aleapp-*" "ALEAPP timelines"
+data_view macapt "macapt-*" "mac_apt timelines"
 data_view dissect "dissect-*" "Dissect timelines"
 data_view hayabusa "hayabusa-*" "Hayabusa detections"
 data_view openrelik "openrelik-*" "OpenRelik exports"

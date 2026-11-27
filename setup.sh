@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Set up OpenRelik with the UAC, iLEAPP, ALEAPP, Dissect/Hayabusa, Takajo and Elasticsearch workers, and a local
+# Set up OpenRelik with the UAC, iLEAPP, ALEAPP, mac_apt, Dissect/Hayabusa, Takajo and Elasticsearch workers, and a local
 # Elasticsearch + Kibana. Safe to run again: each step skips what is already done.
 #
 # Usage: ./setup.sh [openrelik dir]   (default: ./openrelik, made by the installer)
@@ -38,7 +38,7 @@ else
   [[ -f "$OPENRELIK_DIR/docker-compose.yml" ]] || fail "The installer did not create $OPENRELIK_DIR"
 fi
 
-step "Workers (UAC, iLEAPP, ALEAPP, Dissect/Hayabusa, Takajo, Elasticsearch)"
+step "Workers (UAC, iLEAPP, ALEAPP, mac_apt, Dissect/Hayabusa, Takajo, Elasticsearch)"
 override="$OPENRELIK_DIR/docker-compose.override.yml"
 if [[ -f "$override" ]] && ! cmp -s "$override" "$STACK_DIR/docker-compose.override.yml"; then
   cp "$override" "$override.bak.$(date +%Y%m%d%H%M%S)"
@@ -47,7 +47,7 @@ fi
 cp "$STACK_DIR/docker-compose.override.yml" "$override"
 (cd "$OPENRELIK_DIR" \
   && docker compose pull openrelik-worker-uac openrelik-worker-ileapp \
-     openrelik-worker-aleapp openrelik-worker-dissect openrelik-worker-takajo \
+     openrelik-worker-aleapp openrelik-worker-macapt openrelik-worker-dissect openrelik-worker-takajo \
      openrelik-worker-elasticsearch \
   && docker compose up -d)
 
@@ -65,7 +65,7 @@ Kibana:         $KIBANA
 Elasticsearch:  $ES
 
 In an OpenRelik workflow, export timelines with "Elasticsearch Export": index name
-uac-<host>, ileapp-<device>, aleapp-<device>, dissect-<host>, hayabusa-<host> or
+uac-<host>, ileapp-<device>, aleapp-<device>, macapt-<mac>, dissect-<host>, hayabusa-<host> or
 openrelik-<anything>, "Parse input as JSON lines" on. All of them show in Kibana's
 "Super timeline" Discover search.
 EOF

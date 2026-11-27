@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "ecs_version": "9.5.0",
   "ecs_objects": ["url", "user", "source", "server", "destination", "client", "rule", "log",
     "process", "file", "dll", "registry", "service", "group", "network", "os", "agent",
@@ -74,6 +74,14 @@
     "23": ["file"], "26": ["file"]
   },
   "rules": [
+    {"category": ["malware"], "any": ["macapt:xprotect"]},
+    {"category": ["file"], "any": ["macapt:quarantine", "macapt:fs", "macapt:fsevents", "macapt:trash", "macapt:recentitems", "macapt:documentrevisions", "macapt:quicklook", "macapt:icloud"]},
+    {"category": ["configuration"], "any": ["macapt:autostart", "macapt:tcc"]},
+    {"category": ["process"], "any": ["macapt:termsessions", "macapt:terminalstate", "macapt:lesshistory", "macapt:savedstate", "macapt:spotlightshortcuts", "macapt:netusage"]},
+    {"category": ["authentication"], "any": ["macapt:sudolastrun"]},
+    {"category": ["session"], "any": ["macapt:screensharing", "macapt:ard_", "macapt:msrdc"]},
+    {"category": ["package"], "any": ["macapt:installhistory"]},
+    {"category": ["iam"], "any": ["macapt:keychainpasswords"]},
     {"category": ["malware"], "any": ["defender", "antivirus", "quarantine", "mpdetection"]},
     {"category": ["process"], "any": [
       "prefetch", "amcache", "shimcache", "appcompat", ":bam", "userassist", "srum",

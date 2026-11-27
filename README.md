@@ -6,6 +6,8 @@ One script that gives you a forensic workbench on your own computer:
 - **UAC worker**: reads Linux/macOS/Unix collections made with [UAC](https://github.com/tclahr/uac).
 - **iLEAPP worker**: reads iPhone extractions and iTunes backups with [iLEAPP](https://github.com/abrignoni/iLEAPP).
 - **ALEAPP worker**: reads Android extractions with [ALEAPP](https://github.com/abrignoni/ALEAPP).
+- **mac_apt worker**: reads Mac disk images (DMG, E01, raw, VMDK, AFF4) and Mac collections
+  with [mac_apt](https://github.com/ydkhatri/mac_apt).
 - **Dissect and Hayabusa worker**: reads Windows disk images (E01, VMDK, VHDX, raw) and KAPE
   collections with [Dissect](https://github.com/fox-it/dissect), and finds suspicious events
   in event logs with [Hayabusa](https://github.com/Yamato-Security/hayabusa).
@@ -110,6 +112,19 @@ Log in to OpenRelik as `admin` with the password from step 2.
    JSON lines* on.
 4. Click **Run**. Download the **report zip** and open `aleapp_report/index.html`, or search
    the timeline in Kibana under **ALEAPP timelines**.
+
+### A Mac (mac_apt)
+
+1. Upload the image: a `.dmg` (compressed is fine), `.E01` (all parts), raw `.dd`/`.001`,
+   `.vmdk`, `.aff4` or `.sparseimage`, or a UAC, Velociraptor or AXIOM collection of a Mac.
+2. Create a workflow with **mac_apt: macOS artifacts**.
+   - *Timeline format*: Elasticsearch bulk NDJSON
+   - FileVault? Enter a user's password or the recovery key in *Password or recovery key*.
+   - *File system timeline (APFS)* adds a MACB event for every file: big, off by default.
+3. Add **Elasticsearch Export** after it: index name `macapt-mymac`, *Parse input as JSON
+   lines* on.
+4. Click **Run**. Download `mac_apt.db` or the CSVs, or search the timeline in Kibana under
+   **mac_apt timelines**.
 
 ### A Windows computer (E01 or KAPE)
 
@@ -255,7 +270,7 @@ docker exec openrelik-server python admin.py purge-deleted-files
 | --- | --- |
 | `setup.sh` | installs and starts everything; safe to run again |
 | `stop.sh` | stops everything |
-| `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP, Dissect/Hayabusa, Takajo and Elasticsearch workers to OpenRelik |
+| `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP, mac_apt, Dissect/Hayabusa, Takajo and Elasticsearch workers to OpenRelik |
 | `elk/docker-compose.yml` | Elasticsearch and Kibana |
 | `elk/configure.sh` | index templates, the Super timeline pipeline and Kibana views; `setup.sh` runs it |
 | `elk/super-timeline/` | the pipeline (`pipeline.painless`), its categories (`rules.json`), artifact descriptions (`descriptions.json`) and a test (`test_pipeline.py`) |
@@ -270,6 +285,7 @@ Using an OpenRelik you installed before? Run `./setup.sh /path/to/your/openrelik
 | UAC worker | https://github.com/Guzzy711/openrelik-worker-uac |
 | iLEAPP worker | https://github.com/Guzzy711/openrelik-worker-ileapp |
 | ALEAPP worker | https://github.com/Guzzy711/openrelik-worker-aleapp |
+| mac_apt worker | https://github.com/Guzzy711/openrelik-worker-macapt |
 | Dissect and Hayabusa worker | https://github.com/Guzzy711/openrelik-worker-dissect |
 | Takajo worker | https://github.com/Guzzy711/openrelik-worker-takajo |
 | Elasticsearch worker | https://github.com/Guzzy711/openrelik-worker-elasticsearch |
