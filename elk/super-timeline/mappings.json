@@ -1,17 +1,53 @@
 {
   "properties": {
-    "@timestamp": {"type": "date"},
-    "host": {"properties": {"name": {"type": "keyword", "ignore_above": 1024}}},
-    "event": {
+    "@timestamp": {
+      "type": "date"
+    },
+    "host": {
       "properties": {
-        "action": {"type": "keyword", "ignore_above": 1024},
-        "category": {"type": "keyword"},
-        "dataset": {"type": "keyword"},
-        "kind": {"type": "keyword"},
-        "module": {"type": "keyword"},
-        "severity": {"type": "long"}
+        "name": {
+          "type": "keyword",
+          "ignore_above": 1024
+        }
       }
     },
-    "super_timeline_version": {"type": "integer"}
+    "event": {
+      "properties": {
+        "action": {
+          "type": "keyword",
+          "ignore_above": 1024
+        },
+        "category": {
+          "type": "keyword"
+        },
+        "dataset": {
+          "type": "keyword"
+        },
+        "kind": {
+          "type": "keyword"
+        },
+        "module": {
+          "type": "keyword"
+        },
+        "severity": {
+          "type": "long"
+        }
+      }
+    },
+    "super_timeline_version": {
+      "type": "integer"
+    },
+    "artifact": {
+      "properties": {
+        "name": {
+          "type": "keyword",
+          "ignore_above": 1024
+        },
+        "description": {
+          "type": "keyword",
+          "ignore_above": 2048
+        }
+      }
+    }
   }
 }

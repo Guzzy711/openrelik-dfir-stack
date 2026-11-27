@@ -5,8 +5,12 @@
 #   no replicas (one node), ECS field types, room for many fields, and the super-timeline
 #   ingest pipeline.
 # - The super-timeline pipeline (super-timeline/): fills host.name, event.category,
-#   event.action, event.kind and event.dataset the same way for every tool.
-# - Existing indexes get the same, in the background (update by query).
+#   event.action, event.kind, event.dataset and artifact.name/description the same way
+#   for every tool.
+# - Existing indexes get the same, in the background (update by query). An index from
+#   before artifact.description, where artifact is plain text, is copied into a new index
+#   through the pipeline; the old one is deleted once the copy has every document, and its
+#   name becomes an alias of the new one, so exports to it keep working.
 # - Kibana: a data view per tool, the "Super timeline" data view over all of them, and a
 #   "Super timeline" Discover search with fixed columns.
 #
@@ -33,7 +37,7 @@ kibana() {  # kibana <method> <path> <body>
 # A file as the contents of a JSON string.
 json_string() { sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' "$1" | awk '{printf "%s\\n", $0}'; }
 
-# The pipeline: pipeline.painless with rules.json as its params.
+# The pipeline: pipeline.painless with rules.json and descriptions.json as its params.
 es PUT /_ingest/pipeline/super-timeline @- >/dev/null <<JSON
 {
   "description": "Super timeline: the same ECS fields for every tool (version $VERSION)",
@@ -42,7 +46,7 @@ es PUT /_ingest/pipeline/super-timeline @- >/dev/null <<JSON
       "tag": "super-timeline",
       "lang": "painless",
       "source": "$(json_string "$DIR/pipeline.painless")",
-      "params": $(cat "$DIR/rules.json"),
+      "params": {"rules": $(cat "$DIR/rules.json"), "descriptions": $(cat "$DIR/descriptions.json")},
       "on_failure": [
         {"append": {"field": "tags", "value": "super_timeline_error"}},
         {"set": {"field": "error.message", "value": "{{ _ingest.on_failure_message }}"}}
@@ -74,8 +78,41 @@ echo "Index templates: ${PATTERNS[*]/%/-*} (no replicas, ECS fields, super-timel
 
 # Existing indexes: the same field types and pipeline, and their documents updated in the
 # background unless the pipeline already ran on them with these rules.
-indexes="$(es GET "/_cat/indices/$(IFS=,; echo "${PATTERNS[*]/%/-*}")?h=index&expand_wildcards=open" | sort)"
-for index in $indexes; do
+indexes() { es GET "/_cat/indices/$(IFS=,; echo "${PATTERNS[*]/%/-*}")?h=index&expand_wildcards=open" | sort; }
+
+wait_task() {  # wait_task <task id>: until it completes; prints its response
+  local status
+  while :; do
+    status="$(es GET "/_tasks/$1")"
+    if [[ "$status" == *'"completed":true'* ]]; then echo "$status"; return; fi
+    sleep 5
+  done
+}
+
+# Indexes where artifact is plain text (UAC and LEAPP timelines from before
+# artifact.description) can't take the artifact object: copy them through the pipeline.
+for index in $(indexes); do
+  [[ "$(es GET "/$index/_mapping/field/artifact")" == *'"type"'* ]] || continue
+  target="$index-st$VERSION"
+  echo "  $index: artifact is plain text; copying it to $target through the pipeline"
+  es PUT "/$target" '{}' >/dev/null
+  task="$(es POST "/_reindex?wait_for_completion=false" \
+    "{\"source\": {\"index\": \"$index\"}, \"dest\": {\"index\": \"$target\", \"pipeline\": \"super-timeline\"}}" \
+    | sed -n 's/.*"task" *: *"\([^"]*\)".*/\1/p')"
+  result="$(wait_task "$task")"
+  es POST "/$target/_refresh" >/dev/null
+  old="$(es GET "/$index/_count" | sed -n 's/.*"count":\([0-9]*\).*/\1/p')"
+  new="$(es GET "/$target/_count" | sed -n 's/.*"count":\([0-9]*\).*/\1/p')"
+  if [[ -n "$old" && "$old" == "$new" && "$result" != *'"failures":[{'* ]]; then
+    es DELETE "/$index" >/dev/null
+    es POST /_aliases "{\"actions\": [{\"add\": {\"index\": \"$target\", \"alias\": \"$index\", \"is_write_index\": true}}]}" >/dev/null
+    echo "  $index: now an alias of $target ($new documents)"
+  else
+    echo "  $index: copy has $new of $old documents; kept both, $target needs a look" >&2
+  fi
+done
+
+for index in $(indexes); do
   es PUT "/$index/_settings" "{\"index.default_pipeline\": \"super-timeline\", $FIELD_LIMITS}" >/dev/null
   if ! es PUT "/$index/_mapping" "$(cat "$DIR/mappings.json")" >/dev/null 2>&1; then
     echo "  $index: has other types for the ECS fields; its Super timeline columns may be empty" >&2

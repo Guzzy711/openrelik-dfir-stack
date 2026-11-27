@@ -21,7 +21,9 @@
    "event.action": "evtx: EventID 1532",
    "event.category": null,
    "event.kind": "event",
-   "super_timeline_version": 3
+   "super_timeline_version": 6,
+   "artifact.name": "evtx",
+   "artifact.description": "Windows event log record. The EventID and channel say what happened."
   }
  },
  {
@@ -40,7 +42,8 @@
    "event.category": [
     "authentication",
     "session"
-   ]
+   ],
+   "artifact.description": "EventID 4624: Successful logon. The logon type says how: 2 at the keyboard, 3 over the network (shares, PsExec), 4 batch/scheduled task, 5 service, 7 unlock, 10 RDP, 11 cached credentials."
   }
  },
  {
@@ -57,7 +60,8 @@
   "expect": {
    "event.category": [
     "process"
-   ]
+   ],
+   "artifact.description": "EventID 1: Sysmon: a process was created, with command line, hashes and parent process."
   }
  },
  {
@@ -94,7 +98,9 @@
    "event.action": "shellbags: Key last written",
    "event.category": [
     "registry"
-   ]
+   ],
+   "artifact.name": "shellbags",
+   "artifact.description": "Shellbags: folders a user browsed in Explorer, including on removed USB drives, network shares and deleted folders."
   }
  },
  {
@@ -111,7 +117,8 @@
    "event.action": "prefetch: Time",
    "event.category": [
     "process"
-   ]
+   ],
+   "artifact.description": "Prefetch: a program ran on this computer. Shows the program, how many times it ran, its last run times (up to 8) and the files it loaded."
   }
  },
  {
@@ -127,7 +134,8 @@
    "event.action": "lnk: Target modified",
    "event.category": [
     "file"
-   ]
+   ],
+   "artifact.description": "Shortcut (LNK) file: a file or folder was opened, also from USB drives and network shares. Has the target path and times, the drive's serial number and the computer name."
   }
  },
  {
@@ -143,7 +151,9 @@
    "event.action": "browser history: Time",
    "event.category": [
     "web"
-   ]
+   ],
+   "artifact.name": "browser history",
+   "artifact.description": "Browser history: web pages visited, with visit times and counts."
   }
  },
  {
@@ -158,7 +168,8 @@
   "expect": {
    "event.category": [
     "configuration"
-   ]
+   ],
+   "artifact.description": "Services: installed Windows services with their program and start type. New or odd services are a common persistence and lateral movement trace."
   }
  },
  {
@@ -185,7 +196,8 @@
    "event.category": [
     "process"
    ],
-   "timestamp_desc": "ts"
+   "timestamp_desc": "ts",
+   "artifact.description": "Prefetch: a program ran on this computer. Shows the program, how many times it ran, its last run times (up to 8) and the files it loaded."
   }
  },
  {
@@ -209,7 +221,7 @@
     "name": "PC"
    },
    "timestamp_desc": "ts",
-   "super_timeline_version": 3
+   "super_timeline_version": 6
   },
   "expect": {
    "event.dataset": "dissect:prefetch",
@@ -240,7 +252,8 @@
     "intrusion_detection"
    ],
    "event.kind": "alert",
-   "event.severity": 3
+   "event.severity": 3,
+   "artifact.description": "Hayabusa detection: an event log record matched a Sigma or Hayabusa rule. The rule title and level say what was found; check the original event to confirm."
   }
  },
  {
@@ -283,7 +296,8 @@
    "event.action": "bodyfile entry: Last Access Time",
    "event.category": [
     "file"
-   ]
+   ],
+   "artifact.description": "File system timestamps (modified, accessed, changed, created) of every file. Look for files created or changed around the time of the incident."
   }
  },
  {
@@ -299,7 +313,8 @@
    "event.action": "shell history: Command Time",
    "event.category": [
     "process"
-   ]
+   ],
+   "artifact.description": "Shell history: commands a user typed in bash or zsh. Without HISTTIMEFORMAT the times are not when each command ran."
   }
  },
  {
@@ -361,7 +376,9 @@
    "event.action": "Safari History: Visit Time",
    "event.category": [
     "web"
-   ]
+   ],
+   "artifact.name": "Safari History",
+   "artifact.description": "Browser history: web pages visited, with visit times and counts."
   }
  },
  {
@@ -376,7 +393,9 @@
   },
   "expect": {
    "event.action": "SMS - iMessage: Message Timestamp",
-   "event.category": null
+   "event.category": null,
+   "artifact.name": "SMS - iMessage",
+   "artifact.description": "Text messages: who the user texted with and when, and the message text."
   }
  },
  {
@@ -400,7 +419,9 @@
    "event.action": "Chrome Downloads: Start Time",
    "event.category": [
     "web"
-   ]
+   ],
+   "artifact.name": "Chrome Downloads",
+   "artifact.description": "Browser downloads: files downloaded, with the source URL, where they were saved and when."
   }
  },
  {
@@ -428,7 +449,8 @@
    "event.action": "windows evtx record: EventID 1102",
    "event.category": [
     "configuration"
-   ]
+   ],
+   "artifact.description": "EventID 1102: The Security log was cleared. Often an attacker covering their tracks."
   }
  },
  {
@@ -449,7 +471,8 @@
    "event.category": [
     "file"
    ],
-   "host.name": null
+   "host.name": null,
+   "artifact.description": "File system timestamps (modified, accessed, changed, created) of every file. Look for files created or changed around the time of the incident."
   }
  },
  {
@@ -460,7 +483,9 @@
   "expect": {
    "event.dataset": "unknown",
    "event.action": "unknown",
-   "event.kind": "event"
+   "event.kind": "event",
+   "artifact.name": "unknown",
+   "artifact.description": null
   }
  },
  {
@@ -477,7 +502,9 @@
    "event.action": "lastlog: Collection time",
    "event.category": [
     "authentication"
-   ]
+   ],
+   "artifact.name": "live_response/system/lastlog",
+   "artifact.description": "lastlog: each account's most recent login, with source."
   }
  },
  {
@@ -494,7 +521,8 @@
    "event.action": "lastb: Collection time",
    "event.category": [
     "authentication"
-   ]
+   ],
+   "artifact.description": "btmp (lastb): failed login attempts, with source."
   }
  },
  {
@@ -545,7 +573,8 @@
    "event.action": "procfs information: Collection time",
    "event.category": [
     "process"
-   ]
+   ],
+   "artifact.description": "Processes running when the collection ran: command line, user, open files and connections. Look for programs running from /tmp or with a deleted file."
   }
  },
  {
@@ -562,7 +591,8 @@
    "event.action": "dpkg: Collection time",
    "event.category": [
     "package"
-   ]
+   ],
+   "artifact.description": "Installed packages and their versions; package logs show when software was installed or removed."
   }
  },
  {
@@ -596,6 +626,43 @@
    "event.action": "suid: Collection time",
    "event.category": [
     "file"
+   ],
+   "artifact.description": "Files that run with extra privileges (SUID, SGID or capabilities). Attackers use or add these to become root."
+  }
+ },
+ {
+  "name": "pipeline run on its own output keeps artifact",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "n",
+   "message": "x",
+   "artifact": {
+    "name": "live_response/system/lastlog",
+    "description": "old"
+   },
+   "super_timeline_version": 3
+  },
+  "expect": {
+   "artifact.name": "live_response/system/lastlog",
+   "artifact.description": "lastlog: each account's most recent login, with source.",
+   "event.action": "lastlog: Collection time"
+  }
+ },
+ {
+  "name": "ileapp knowledgeC is not browser history",
+  "doc": {
+   "@timestamp": "2024-01-01T00:00:00+00:00",
+   "timestamp_desc": "Start",
+   "data_type": "ileapp:knowledgec_app_usage",
+   "artifact": "KnowledgeC App Usage",
+   "source_file": "iPhone"
+  },
+  "expect": {
+   "artifact.description": "App usage history: which apps were used and when, and when the device was locked or charging. Places a person at the device.",
+   "event.category": [
+    "process"
    ]
   }
  }

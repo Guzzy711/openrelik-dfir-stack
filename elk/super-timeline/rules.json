@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "host_fields": ["hostname", "computer", "computer_name", "Computer", "source_file"],
   "time_labels": {
     "ts": "Time",
@@ -74,7 +74,7 @@
     ]},
     {"category": ["registry"], "any": ["shellbags", "mru", "registry", "regf", "recentdocs", "typedpaths"]},
     {"category": ["web"], "any": [
-      "browser", "chrome", "chromium", "firefox", "edge", "safari", "brave", "opera",
+      "browser", "chrome", "chromium", "firefox", "edge.", "msedge", "microsoft edge", "safari", "brave", "opera",
       "webcache", "webkit", "cookies", "iexplore"
     ]},
     {"category": ["file"], "any": [

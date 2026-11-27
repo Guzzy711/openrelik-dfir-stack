@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check the super-timeline pipeline against samples of every worker's output.
 
-Runs the pipeline from pipeline.painless and rules.json with Elasticsearch's simulate API,
+Runs the pipeline from pipeline.painless, rules.json and descriptions.json with Elasticsearch's simulate API,
 so nothing is installed or indexed. Needs a running Elasticsearch (ES, default
 http://localhost:9200) and only the Python standard library.
 
@@ -25,7 +25,10 @@ def pipeline() -> dict:
             "script": {
                 "lang": "painless",
                 "source": (HERE / "pipeline.painless").read_text(),
-                "params": json.loads((HERE / "rules.json").read_text()),
+                "params": {
+                    "rules": json.loads((HERE / "rules.json").read_text()),
+                    "descriptions": json.loads((HERE / "descriptions.json").read_text()),
+                },
             }
         }]
     }

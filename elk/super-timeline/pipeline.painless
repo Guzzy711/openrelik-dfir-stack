@@ -4,7 +4,11 @@
 // Elasticsearch bulk NDJSON with event.module/event.dataset and the tool's fields under
 // <module>) and Plaso's psort json_line.
 //
-// The keyword tables are in rules.json (the script's params). elk/configure.sh installs the pipeline.
+// Also artifact.name and artifact.description: what the artifact is and what it tells an
+// investigator.
+//
+// The tables are the script's params: params.rules (rules.json: categories, labels) and
+// params.descriptions (descriptions.json). elk/configure.sh installs the pipeline.
 
 String text(def value) {
   if (value == null) { return null; }
@@ -72,7 +76,7 @@ if (ctx['@timestamp'] == null) {
 // host.name
 Map host = ctx.host instanceof Map ? ctx.host : new HashMap();
 if (text(host.name) == null) {
-  String name = pick(ctx, fields, params.host_fields);
+  String name = pick(ctx, fields, params.rules.host_fields);
   if (name != null) { host.name = name; ctx.host = host; }
 }
 
@@ -81,12 +85,19 @@ if (text(host.name) == null) {
 String desc = text(ctx.timestamp_desc);
 if (desc == null && !ctx.containsKey('super_timeline_version')) { desc = text(event.action); }
 if (desc != null) { ctx.timestamp_desc = desc; }
-if (desc != null && params.time_labels.containsKey(desc)) { desc = params.time_labels.get(desc); }
+if (desc != null && params.rules.time_labels.containsKey(desc)) { desc = params.rules.time_labels.get(desc); }
 
 // The artifact as people say it: LEAPP's artifact name, the last part of UAC's artifact
 // path (live_response/system/lastlog: lastlog), else the key without the tool. Categories
 // match on the whole artifact.
-String artifact = pick(ctx, fields, ['artifact']);
+// artifact is a name in the workers' output and an object (name, description) after this
+// pipeline ran.
+String artifact = null;
+if (ctx.artifact instanceof Map) {
+  artifact = text(((Map) ctx.artifact).get('name'));
+} else {
+  artifact = pick(ctx, fields, ['artifact']);
+}
 String label;
 if (artifact != null) {
   int slash = artifact.lastIndexOf('/');
@@ -107,15 +118,15 @@ if (tool == 'hayabusa') {
   String rule = pick(ctx, fields, ['rule_title', 'RuleTitle']);
   event.action = rule != null ? rule : 'Hayabusa detection';
   String level = pick(ctx, fields, ['level', 'Level']);
-  if (level != null && params.severity.containsKey(level.toLowerCase())) {
-    event.severity = params.severity.get(level.toLowerCase());
+  if (level != null && params.rules.severity.containsKey(level.toLowerCase())) {
+    event.severity = params.rules.severity.get(level.toLowerCase());
   }
 } else if (eventId != null && (lower.contains('evtx') || lower.contains('eventlog'))) {
   event.action = label + ': EventID ' + eventId;
-  if (channel != null && channel.toLowerCase().contains('sysmon') && params.sysmon_ids.containsKey(eventId)) {
-    category.addAll(params.sysmon_ids.get(eventId));
-  } else if (params.event_ids.containsKey(eventId)) {
-    category.addAll(params.event_ids.get(eventId));
+  if (channel != null && channel.toLowerCase().contains('sysmon') && params.rules.sysmon_ids.containsKey(eventId)) {
+    category.addAll(params.rules.sysmon_ids.get(eventId));
+  } else if (params.rules.event_ids.containsKey(eventId)) {
+    category.addAll(params.rules.event_ids.get(eventId));
   }
 } else {
   event.action = desc != null ? label + ': ' + desc : label;
@@ -124,11 +135,28 @@ if (tool == 'hayabusa') {
 // Categories by keyword in the artifact key (and LEAPP's artifact name): first rule wins.
 if (category.isEmpty()) {
   String haystack = lower + ' ' + (artifact != null ? artifact : label).toLowerCase();
-  for (Map rule : params.rules) {
+  for (Map rule : params.rules.rules) {
     if (has(haystack, rule.any)) { category.addAll(rule.category); break; }
   }
 }
 if (!category.isEmpty()) { event.category = category; }
+
+// artifact.description: the event's own (EventID), else the first artifact rule matching.
+String description = null;
+if (eventId != null && (lower.contains('evtx') || lower.contains('eventlog'))) {
+  Map ids = channel != null && channel.toLowerCase().contains('sysmon') ? params.descriptions.sysmon_ids : params.descriptions.event_ids;
+  description = ids.containsKey(eventId) ? 'EventID ' + eventId + ': ' + ids.get(eventId) : params.descriptions.evtx;
+}
+if (description == null) {
+  String haystack = lower + ' ' + (artifact != null ? artifact : label).toLowerCase();
+  for (Map rule : params.descriptions.artifacts) {
+    if (has(haystack, rule.any)) { description = rule.description; break; }
+  }
+}
+Map artifactField = new HashMap();
+artifactField.name = artifact != null ? artifact : label;
+if (description != null) { artifactField.description = description; }
+ctx.artifact = artifactField;
 event.kind = kind;
 ctx.event = event;
-ctx.super_timeline_version = params.version;
+ctx.super_timeline_version = params.rules.version;

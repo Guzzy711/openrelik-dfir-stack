@@ -145,6 +145,12 @@ Every timeline you export, from any tool, lands in one Kibana view with the same
 | `event.action` | the artifact and what the time means (`lnk: Target modified`, `evtx: EventID 4624`), or the Hayabusa rule |
 | `message` | the details |
 
+Each row also has `artifact.name` and `artifact.description`: what the artifact is and what
+it tells you, for example *"Prefetch: a program ran on this computer. Shows the program, how
+many times it ran, its last run times (up to 8) and the files it loaded."* Windows event log
+rows describe their EventID (*"EventID 4624: Successful logon. The logon type says how: ..."*).
+Click a row in Discover to see them, or add `artifact.description` as a column.
+
 In Kibana open **Discover**, click **Open** (top right) and pick **Super timeline**. Filter with
 the search bar, for example:
 
@@ -152,12 +158,20 @@ the search bar, for example:
 - `event.category: authentication` — logons on every computer
 - `event.kind: alert` — only Hayabusa detections
 - `event.dataset: dissect:prefetch` — one artifact
+- `artifact.description: *persist*` — everything described as a persistence location
 
 Elasticsearch fills these fields while it indexes (the `super-timeline` ingest pipeline in
 `elk/super-timeline/`). Artifacts without a clear ECS category have no `event.category`;
 `event.dataset` always says what they are. To add or change categories, edit
-`elk/super-timeline/rules.json`, raise its `version`, and run `elk/configure.sh`: it updates
-the timelines you already have in the background.
+`elk/super-timeline/rules.json` (descriptions: `descriptions.json`), raise the `version` in
+`rules.json`, and run `elk/configure.sh`: it updates the timelines you already have in the
+background.
+
+Timelines exported before `artifact.description` existed (UAC, iLEAPP, ALEAPP) have
+`artifact` as plain text, which Elasticsearch can't change in place. `elk/configure.sh`
+copies such an index to `<name>-st<version>`, deletes the old one once the copy has every
+document, and keeps the old name as an alias, so exports to it keep working. Don't run an
+export into that index while `configure.sh` copies it.
 
 ## 6. Stop, start, update
 
@@ -220,7 +234,7 @@ docker exec openrelik-server python admin.py purge-deleted-files
 | `docker-compose.override.yml` | adds the UAC, iLEAPP, ALEAPP, Dissect/Hayabusa, Takajo and Elasticsearch workers to OpenRelik |
 | `elk/docker-compose.yml` | Elasticsearch and Kibana |
 | `elk/configure.sh` | index templates, the Super timeline pipeline and Kibana views; `setup.sh` runs it |
-| `elk/super-timeline/` | the pipeline (`pipeline.painless`), its categories (`rules.json`) and a test (`test_pipeline.py`) |
+| `elk/super-timeline/` | the pipeline (`pipeline.painless`), its categories (`rules.json`), artifact descriptions (`descriptions.json`) and a test (`test_pipeline.py`) |
 | `openrelik/` | OpenRelik itself, created by `setup.sh` (your data is in `openrelik/data`) |
 
 Using an OpenRelik you installed before? Run `./setup.sh /path/to/your/openrelik`.
