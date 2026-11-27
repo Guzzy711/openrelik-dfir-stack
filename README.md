@@ -167,6 +167,10 @@ Not ECS, because ECS has no field for them: `artifact.name` and `artifact.descri
 `data_type` (the tool's own `tool:artifact`), `timestamp_desc` (what the time means) and
 the tools' other fields, which keep their names.
 
+Kibana is in dark mode and shows times as ISO 8601 in UTC
+(`2015-03-25T10:15:38.914+00:00`). To change either, or see times in your own time zone,
+go to Stack Management → Advanced Settings (*Dark mode*, *Timezone for date formatting*).
+
 In Kibana open **Discover**, click **Open** (top right) and pick **Super timeline**. Filter with
 the search bar, for example:
 
