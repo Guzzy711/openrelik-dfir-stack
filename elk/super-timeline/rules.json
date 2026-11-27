@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "host_fields": ["hostname", "computer", "computer_name", "Computer", "source_file"],
   "time_labels": {
     "ts": "Time",
@@ -19,6 +19,7 @@
     "target_ctime": "Target created",
     "target_mtime": "Target modified",
     "start_boundary": "Trigger start",
+    "UAC Collection Time": "Collection time",
     "end_boundary": "Trigger end"
   },
   "severity": {
@@ -62,13 +63,13 @@
       "notifications", "screentime", "knowledgec", "biome"
     ]},
     {"category": ["authentication"], "any": [
-      "authlog", "auth.log", "wtmp", "btmp", "lastlog", "logon", "login", "sudo", "ssh",
-      "secure", "faillog"
+      "authlog", "auth.log", "wtmp", "btmp", "lastlog", "logon", "login", "ssh", "secure",
+      "faillog", "system/last"
     ]},
-    {"category": ["session"], "any": ["utmp", "rdp", "terminal_server", "remoteaccess", "anydesk", "teamviewer"]},
+    {"category": ["session"], "any": ["utmp", "system/who", "rdp", "terminal_server", "remoteaccess", "anydesk", "teamviewer"]},
     {"category": ["configuration"], "any": [
       "services", "tasks", "runkeys", "run_keys", "startup", "cron", "systemd", "autorun",
-      "persistence", "policy", "auditpol", "firewall", "launchagent", "launchdaemon",
+      "persistence", "policy", "auditpol", "sudoers", "systemctl", "system/service", "firewall", "launchagent", "launchdaemon",
       "appinit", "alternateshell", "bootshell"
     ]},
     {"category": ["registry"], "any": ["shellbags", "mru", "registry", "regf", "recentdocs", "typedpaths"]},
@@ -78,7 +79,8 @@
     ]},
     {"category": ["file"], "any": [
       "fs:", "filesystem", "bodyfile", "mft", "usnjrnl", "lnk", "jumplist", "recyclebin",
-      "thumbcache", "downloads", "hash_executables", "file_history", "photos", "media"
+      "thumbcache", "downloads", "hash_executables", "system/suid", "system/sgid",
+      "getcap", "writable_", "hidden_files", "hidden_directories", "group_name_unknown", "file_history", "photos", "media"
     ]},
     {"category": ["network"], "any": [
       "network", "wlan", "wifi", "wi-fi", "dns", "dhcp", "bluetooth", "netstat", ":arp",

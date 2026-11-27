@@ -1,71 +1,602 @@
 [
-  {"name": "dissect evtx (Timesketch), unmapped EventID",
-   "doc": {"message": "evtx | Provider_Name: Microsoft-Windows-User Profiles Service, EventID: 1532", "datetime": "2010-11-21T03:58:31.124372+00:00", "@timestamp": "2010-11-21T03:58:31.124372+00:00", "timestamp": 1290311911124372, "timestamp_desc": "ts", "data_type": "dissect:evtx", "source_file": "INFORMANT-PC", "EventID": "1532", "Channel": "Application", "Computer": "37L4247F27-25", "hostname": "INFORMANT-PC"},
-   "expect": {"host.name": "INFORMANT-PC", "event.dataset": "dissect:evtx", "event.module": "dissect", "event.action": "evtx: EventID 1532", "event.category": null, "event.kind": "event", "super_timeline_version": 2}},
-  {"name": "dissect evtx logon 4624",
-   "doc": {"message": "evtx | EventID: 4624", "@timestamp": "2015-03-25T10:00:00+00:00", "timestamp_desc": "ts", "data_type": "dissect:evtx", "EventID": "4624", "Channel": "Security", "hostname": "INFORMANT-PC"},
-   "expect": {"event.action": "evtx: EventID 4624", "event.category": ["authentication", "session"]}},
-  {"name": "dissect evtx Sysmon 1",
-   "doc": {"message": "evtx | EventID: 1", "@timestamp": "2015-03-25T10:00:00+00:00", "timestamp_desc": "ts", "data_type": "dissect:evtx", "EventID": "1", "Channel": "Microsoft-Windows-Sysmon/Operational", "hostname": "PC"},
-   "expect": {"event.category": ["process"]}},
-  {"name": "dissect defender evtx",
-   "doc": {"message": "defender.evtx | EventID: 1116", "@timestamp": "2015-03-25T10:00:00+00:00", "timestamp_desc": "ts", "data_type": "dissect:defender.evtx", "EventID": "1116", "hostname": "PC"},
-   "expect": {"event.action": "defender evtx: EventID 1116", "event.category": ["malware"]}},
-  {"name": "dissect shellbags (Timesketch)",
-   "doc": {"message": "shellbags | type: ROOT_FOLDER, path: Network", "datetime": "2015-03-23T20:24:35.434944+00:00", "@timestamp": "2015-03-23T20:24:35.434944+00:00", "timestamp_desc": "regf_mtime", "data_type": "dissect:shellbags", "source_file": "INFORMANT-PC", "path": "Network", "hostname": "INFORMANT-PC"},
-   "expect": {"host.name": "INFORMANT-PC", "event.action": "shellbags: Key last written", "event.category": ["registry"]}},
-  {"name": "dissect prefetch (Timesketch)",
-   "doc": {"message": "prefetch | filename: NGEN.EXE, runcount: 4", "@timestamp": "2015-03-25T14:54:39+00:00", "timestamp_desc": "ts", "data_type": "dissect:prefetch", "hostname": "PC", "filename": "NGEN.EXE"},
-   "expect": {"event.action": "prefetch: Time", "event.category": ["process"]}},
-  {"name": "dissect lnk",
-   "doc": {"message": "lnk | ...", "@timestamp": "2015-03-25T14:54:39+00:00", "timestamp_desc": "target_mtime", "data_type": "dissect:lnk", "hostname": "PC"},
-   "expect": {"event.action": "lnk: Target modified", "event.category": ["file"]}},
-  {"name": "dissect browser.history",
-   "doc": {"message": "browser.history | url: http://x", "@timestamp": "2015-03-25T14:54:39+00:00", "timestamp_desc": "ts", "data_type": "dissect:browser.history", "hostname": "PC"},
-   "expect": {"event.action": "browser history: Time", "event.category": ["web"]}},
-  {"name": "dissect services",
-   "doc": {"message": "services | ...", "@timestamp": "2015-03-25T14:54:39+00:00", "timestamp_desc": "ts", "data_type": "dissect:services", "hostname": "PC"},
-   "expect": {"event.category": ["configuration"]}},
-  {"name": "dissect prefetch (Elasticsearch bulk)",
-   "doc": {"@timestamp": "2015-03-25T14:54:39+00:00", "message": "prefetch | filename: NGEN.EXE", "event": {"action": "ts", "dataset": "prefetch", "module": "dissect"}, "dissect": {"source_file": "PC", "hostname": "PC", "filename": "NGEN.EXE"}},
-   "expect": {"host.name": "PC", "event.dataset": "dissect:prefetch", "event.module": "dissect", "event.action": "prefetch: Time", "event.category": ["process"], "timestamp_desc": "ts"}},
-  {"name": "pipeline run twice gives the same result",
-   "doc": {"@timestamp": "2015-03-25T14:54:39+00:00", "message": "prefetch | filename: NGEN.EXE", "event": {"action": "prefetch: Time", "dataset": "dissect:prefetch", "module": "dissect", "kind": "event", "category": ["process"]}, "dissect": {"hostname": "PC"}, "host": {"name": "PC"}, "timestamp_desc": "ts", "super_timeline_version": 2},
-   "expect": {"event.dataset": "dissect:prefetch", "event.action": "prefetch: Time", "event.category": ["process"]}},
-  {"name": "hayabusa (Timesketch, from the Dissect worker)",
-   "doc": {"message": "[medium] Uncommon New Firewall Rule Added", "datetime": "2015-03-25T14:54:07.457000+00:00", "@timestamp": "2015-03-25T14:54:07.457000+00:00", "timestamp_desc": "Event Time", "data_type": "hayabusa:detection", "source_file": "cfreds_2015_data_leakage_pc", "rule_title": "Uncommon New Firewall Rule Added In Windows Firewall Exception List", "level": "medium", "computer": "informant-PC", "channel": "Firewall"},
-   "expect": {"host.name": "informant-PC", "event.action": "Uncommon New Firewall Rule Added In Windows Firewall Exception List", "event.category": ["intrusion_detection"], "event.kind": "alert", "event.severity": 3}},
-  {"name": "hayabusa (Elasticsearch bulk)",
-   "doc": {"@timestamp": "2015-03-25T14:54:07+00:00", "message": "[high] Log Cleared", "event": {"action": "Event Time", "dataset": "detection", "module": "hayabusa"}, "hayabusa": {"source_file": "x", "rule_title": "Log Cleared", "level": "high", "computer": "PC01"}},
-   "expect": {"host.name": "PC01", "event.dataset": "hayabusa:detection", "event.action": "Log Cleared", "event.kind": "alert", "event.severity": 4}},
-  {"name": "uac bodyfile (Timesketch)",
-   "doc": {"message": "/etc/passwd", "datetime": "2026-11-26T10:27:03+00:00", "@timestamp": "2026-11-26T10:27:03+00:00", "timestamp_desc": "Last Access Time", "data_type": "uac:bodyfile:entry", "hostname": "node-northsea-1"},
-   "expect": {"host.name": "node-northsea-1", "event.action": "bodyfile entry: Last Access Time", "event.category": ["file"]}},
-  {"name": "uac shell history",
-   "doc": {"message": "sudo su -", "@timestamp": "2026-11-26T10:27:03+00:00", "timestamp_desc": "Command Time", "data_type": "uac:shell:history", "hostname": "node-northsea-1"},
-   "expect": {"event.action": "shell history: Command Time", "event.category": ["process"]}},
-  {"name": "uac collection log",
-   "doc": {"message": "INF Unix-like Artifacts Collector 3.4.0", "@timestamp": "2026-11-26T10:27:03+00:00", "timestamp_desc": "Log Time", "data_type": "uac:collection:log", "hostname": "node-northsea-1", "level": "INF"},
-   "expect": {"event.action": "collection log: Log Time", "event.category": ["host"], "event.kind": "event"}},
-  {"name": "uac bodyfile (Elasticsearch bulk)",
-   "doc": {"@timestamp": "2026-11-26T10:27:03+00:00", "message": "/etc/passwd", "event": {"action": "Creation Time", "dataset": "uac:bodyfile:entry", "module": "uac"}, "host": {"name": "node-1"}, "uac": {"path": "/etc/passwd"}},
-   "expect": {"host.name": "node-1", "event.dataset": "uac:bodyfile:entry", "event.action": "bodyfile entry: Creation Time", "event.category": ["file"]}},
-  {"name": "ileapp Safari history (Timesketch)",
-   "doc": {"message": "Safari History: http://x", "@timestamp": "2024-01-01T00:00:00+00:00", "timestamp_desc": "Visit Time", "data_type": "ileapp:safari_history", "artifact": "Safari History", "source_file": "iPhone_ffs"},
-   "expect": {"host.name": "iPhone_ffs", "event.action": "Safari History: Visit Time", "event.category": ["web"]}},
-  {"name": "ileapp SMS has no ECS category",
-   "doc": {"message": "SMS - iMessage: hi", "@timestamp": "2024-01-01T00:00:00+00:00", "timestamp_desc": "Message Timestamp", "data_type": "ileapp:sms_imessage", "artifact": "SMS - iMessage", "source_file": "iPhone_ffs"},
-   "expect": {"event.action": "SMS - iMessage: Message Timestamp", "event.category": null}},
-  {"name": "aleapp Chrome downloads (Elasticsearch bulk)",
-   "doc": {"@timestamp": "2024-01-01T00:00:00+00:00", "message": "Chrome Downloads: x.apk", "event": {"action": "Start Time", "dataset": "aleapp.chrome_downloads", "module": "aleapp"}, "aleapp": {"artifact": "Chrome Downloads", "source_file": "pixel_ffs"}},
-   "expect": {"host.name": "pixel_ffs", "event.dataset": "aleapp:chrome_downloads", "event.action": "Chrome Downloads: Start Time", "event.category": ["web"]}},
-  {"name": "plaso evtx (psort json_line), no @timestamp",
-   "doc": {"__container_type__": "event", "computer_name": "Sec504Student", "data_type": "windows:evtx:record", "date_time": {"__class_name__": "Filetime", "timestamp": 132011213026181935}, "event_identifier": 1102, "message": "[1102 / 0x044e] The audit log was cleared.", "parser": "winevtx", "source_name": "Microsoft-Windows-Eventlog", "timestamp": 1556647702618194, "timestamp_desc": "Content Modification Time"},
-   "expect": {"@timestamp": "2019-04-30T18:08:22.618194Z", "host.name": "Sec504Student", "event.module": "plaso", "event.dataset": "windows:evtx:record", "event.action": "windows evtx record: EventID 1102", "event.category": ["configuration"]}},
-  {"name": "plaso fs:stat",
-   "doc": {"data_type": "fs:stat", "date_time": {"timestamp": 1}, "parser": "filestat", "timestamp": 1795754125283340, "timestamp_desc": "Content Modification Time", "message": "OS:/in/x.evtx"},
-   "expect": {"event.module": "plaso", "event.action": "fs stat: Content Modification Time", "event.category": ["file"], "host.name": null}},
-  {"name": "document without anything known",
-   "doc": {"message": "just a line"},
-   "expect": {"event.dataset": "unknown", "event.action": "unknown", "event.kind": "event"}}
+ {
+  "name": "dissect evtx (Timesketch), unmapped EventID",
+  "doc": {
+   "message": "evtx | Provider_Name: Microsoft-Windows-User Profiles Service, EventID: 1532",
+   "datetime": "2010-11-21T03:58:31.124372+00:00",
+   "@timestamp": "2010-11-21T03:58:31.124372+00:00",
+   "timestamp": 1290311911124372,
+   "timestamp_desc": "ts",
+   "data_type": "dissect:evtx",
+   "source_file": "INFORMANT-PC",
+   "EventID": "1532",
+   "Channel": "Application",
+   "Computer": "37L4247F27-25",
+   "hostname": "INFORMANT-PC"
+  },
+  "expect": {
+   "host.name": "INFORMANT-PC",
+   "event.dataset": "dissect:evtx",
+   "event.module": "dissect",
+   "event.action": "evtx: EventID 1532",
+   "event.category": null,
+   "event.kind": "event",
+   "super_timeline_version": 3
+  }
+ },
+ {
+  "name": "dissect evtx logon 4624",
+  "doc": {
+   "message": "evtx | EventID: 4624",
+   "@timestamp": "2015-03-25T10:00:00+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:evtx",
+   "EventID": "4624",
+   "Channel": "Security",
+   "hostname": "INFORMANT-PC"
+  },
+  "expect": {
+   "event.action": "evtx: EventID 4624",
+   "event.category": [
+    "authentication",
+    "session"
+   ]
+  }
+ },
+ {
+  "name": "dissect evtx Sysmon 1",
+  "doc": {
+   "message": "evtx | EventID: 1",
+   "@timestamp": "2015-03-25T10:00:00+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:evtx",
+   "EventID": "1",
+   "Channel": "Microsoft-Windows-Sysmon/Operational",
+   "hostname": "PC"
+  },
+  "expect": {
+   "event.category": [
+    "process"
+   ]
+  }
+ },
+ {
+  "name": "dissect defender evtx",
+  "doc": {
+   "message": "defender.evtx | EventID: 1116",
+   "@timestamp": "2015-03-25T10:00:00+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:defender.evtx",
+   "EventID": "1116",
+   "hostname": "PC"
+  },
+  "expect": {
+   "event.action": "defender evtx: EventID 1116",
+   "event.category": [
+    "malware"
+   ]
+  }
+ },
+ {
+  "name": "dissect shellbags (Timesketch)",
+  "doc": {
+   "message": "shellbags | type: ROOT_FOLDER, path: Network",
+   "datetime": "2015-03-23T20:24:35.434944+00:00",
+   "@timestamp": "2015-03-23T20:24:35.434944+00:00",
+   "timestamp_desc": "regf_mtime",
+   "data_type": "dissect:shellbags",
+   "source_file": "INFORMANT-PC",
+   "path": "Network",
+   "hostname": "INFORMANT-PC"
+  },
+  "expect": {
+   "host.name": "INFORMANT-PC",
+   "event.action": "shellbags: Key last written",
+   "event.category": [
+    "registry"
+   ]
+  }
+ },
+ {
+  "name": "dissect prefetch (Timesketch)",
+  "doc": {
+   "message": "prefetch | filename: NGEN.EXE, runcount: 4",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:prefetch",
+   "hostname": "PC",
+   "filename": "NGEN.EXE"
+  },
+  "expect": {
+   "event.action": "prefetch: Time",
+   "event.category": [
+    "process"
+   ]
+  }
+ },
+ {
+  "name": "dissect lnk",
+  "doc": {
+   "message": "lnk | ...",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "target_mtime",
+   "data_type": "dissect:lnk",
+   "hostname": "PC"
+  },
+  "expect": {
+   "event.action": "lnk: Target modified",
+   "event.category": [
+    "file"
+   ]
+  }
+ },
+ {
+  "name": "dissect browser.history",
+  "doc": {
+   "message": "browser.history | url: http://x",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:browser.history",
+   "hostname": "PC"
+  },
+  "expect": {
+   "event.action": "browser history: Time",
+   "event.category": [
+    "web"
+   ]
+  }
+ },
+ {
+  "name": "dissect services",
+  "doc": {
+   "message": "services | ...",
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "timestamp_desc": "ts",
+   "data_type": "dissect:services",
+   "hostname": "PC"
+  },
+  "expect": {
+   "event.category": [
+    "configuration"
+   ]
+  }
+ },
+ {
+  "name": "dissect prefetch (Elasticsearch bulk)",
+  "doc": {
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "message": "prefetch | filename: NGEN.EXE",
+   "event": {
+    "action": "ts",
+    "dataset": "prefetch",
+    "module": "dissect"
+   },
+   "dissect": {
+    "source_file": "PC",
+    "hostname": "PC",
+    "filename": "NGEN.EXE"
+   }
+  },
+  "expect": {
+   "host.name": "PC",
+   "event.dataset": "dissect:prefetch",
+   "event.module": "dissect",
+   "event.action": "prefetch: Time",
+   "event.category": [
+    "process"
+   ],
+   "timestamp_desc": "ts"
+  }
+ },
+ {
+  "name": "pipeline run twice gives the same result",
+  "doc": {
+   "@timestamp": "2015-03-25T14:54:39+00:00",
+   "message": "prefetch | filename: NGEN.EXE",
+   "event": {
+    "action": "prefetch: Time",
+    "dataset": "dissect:prefetch",
+    "module": "dissect",
+    "kind": "event",
+    "category": [
+     "process"
+    ]
+   },
+   "dissect": {
+    "hostname": "PC"
+   },
+   "host": {
+    "name": "PC"
+   },
+   "timestamp_desc": "ts",
+   "super_timeline_version": 3
+  },
+  "expect": {
+   "event.dataset": "dissect:prefetch",
+   "event.action": "prefetch: Time",
+   "event.category": [
+    "process"
+   ]
+  }
+ },
+ {
+  "name": "hayabusa (Timesketch, from the Dissect worker)",
+  "doc": {
+   "message": "[medium] Uncommon New Firewall Rule Added",
+   "datetime": "2015-03-25T14:54:07.457000+00:00",
+   "@timestamp": "2015-03-25T14:54:07.457000+00:00",
+   "timestamp_desc": "Event Time",
+   "data_type": "hayabusa:detection",
+   "source_file": "cfreds_2015_data_leakage_pc",
+   "rule_title": "Uncommon New Firewall Rule Added In Windows Firewall Exception List",
+   "level": "medium",
+   "computer": "informant-PC",
+   "channel": "Firewall"
+  },
+  "expect": {
+   "host.name": "informant-PC",
+   "event.action": "Uncommon New Firewall Rule Added In Windows Firewall Exception List",
+   "event.category": [
+    "intrusion_detection"
+   ],
+   "event.kind": "alert",
+   "event.severity": 3
+  }
+ },
+ {
+  "name": "hayabusa (Elasticsearch bulk)",
+  "doc": {
+   "@timestamp": "2015-03-25T14:54:07+00:00",
+   "message": "[high] Log Cleared",
+   "event": {
+    "action": "Event Time",
+    "dataset": "detection",
+    "module": "hayabusa"
+   },
+   "hayabusa": {
+    "source_file": "x",
+    "rule_title": "Log Cleared",
+    "level": "high",
+    "computer": "PC01"
+   }
+  },
+  "expect": {
+   "host.name": "PC01",
+   "event.dataset": "hayabusa:detection",
+   "event.action": "Log Cleared",
+   "event.kind": "alert",
+   "event.severity": 4
+  }
+ },
+ {
+  "name": "uac bodyfile (Timesketch)",
+  "doc": {
+   "message": "/etc/passwd",
+   "datetime": "2026-11-26T10:27:03+00:00",
+   "@timestamp": "2026-11-26T10:27:03+00:00",
+   "timestamp_desc": "Last Access Time",
+   "data_type": "uac:bodyfile:entry",
+   "hostname": "node-northsea-1"
+  },
+  "expect": {
+   "host.name": "node-northsea-1",
+   "event.action": "bodyfile entry: Last Access Time",
+   "event.category": [
+    "file"
+   ]
+  }
+ },
+ {
+  "name": "uac shell history",
+  "doc": {
+   "message": "sudo su -",
+   "@timestamp": "2026-11-26T10:27:03+00:00",
+   "timestamp_desc": "Command Time",
+   "data_type": "uac:shell:history",
+   "hostname": "node-northsea-1"
+  },
+  "expect": {
+   "event.action": "shell history: Command Time",
+   "event.category": [
+    "process"
+   ]
+  }
+ },
+ {
+  "name": "uac collection log",
+  "doc": {
+   "message": "INF Unix-like Artifacts Collector 3.4.0",
+   "@timestamp": "2026-11-26T10:27:03+00:00",
+   "timestamp_desc": "Log Time",
+   "data_type": "uac:collection:log",
+   "hostname": "node-northsea-1",
+   "level": "INF"
+  },
+  "expect": {
+   "event.action": "collection log: Log Time",
+   "event.category": [
+    "host"
+   ],
+   "event.kind": "event"
+  }
+ },
+ {
+  "name": "uac bodyfile (Elasticsearch bulk)",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:03+00:00",
+   "message": "/etc/passwd",
+   "event": {
+    "action": "Creation Time",
+    "dataset": "uac:bodyfile:entry",
+    "module": "uac"
+   },
+   "host": {
+    "name": "node-1"
+   },
+   "uac": {
+    "path": "/etc/passwd"
+   }
+  },
+  "expect": {
+   "host.name": "node-1",
+   "event.dataset": "uac:bodyfile:entry",
+   "event.action": "bodyfile entry: Creation Time",
+   "event.category": [
+    "file"
+   ]
+  }
+ },
+ {
+  "name": "ileapp Safari history (Timesketch)",
+  "doc": {
+   "message": "Safari History: http://x",
+   "@timestamp": "2024-01-01T00:00:00+00:00",
+   "timestamp_desc": "Visit Time",
+   "data_type": "ileapp:safari_history",
+   "artifact": "Safari History",
+   "source_file": "iPhone_ffs"
+  },
+  "expect": {
+   "host.name": "iPhone_ffs",
+   "event.action": "Safari History: Visit Time",
+   "event.category": [
+    "web"
+   ]
+  }
+ },
+ {
+  "name": "ileapp SMS has no ECS category",
+  "doc": {
+   "message": "SMS - iMessage: hi",
+   "@timestamp": "2024-01-01T00:00:00+00:00",
+   "timestamp_desc": "Message Timestamp",
+   "data_type": "ileapp:sms_imessage",
+   "artifact": "SMS - iMessage",
+   "source_file": "iPhone_ffs"
+  },
+  "expect": {
+   "event.action": "SMS - iMessage: Message Timestamp",
+   "event.category": null
+  }
+ },
+ {
+  "name": "aleapp Chrome downloads (Elasticsearch bulk)",
+  "doc": {
+   "@timestamp": "2024-01-01T00:00:00+00:00",
+   "message": "Chrome Downloads: x.apk",
+   "event": {
+    "action": "Start Time",
+    "dataset": "aleapp.chrome_downloads",
+    "module": "aleapp"
+   },
+   "aleapp": {
+    "artifact": "Chrome Downloads",
+    "source_file": "pixel_ffs"
+   }
+  },
+  "expect": {
+   "host.name": "pixel_ffs",
+   "event.dataset": "aleapp:chrome_downloads",
+   "event.action": "Chrome Downloads: Start Time",
+   "event.category": [
+    "web"
+   ]
+  }
+ },
+ {
+  "name": "plaso evtx (psort json_line), no @timestamp",
+  "doc": {
+   "__container_type__": "event",
+   "computer_name": "Sec504Student",
+   "data_type": "windows:evtx:record",
+   "date_time": {
+    "__class_name__": "Filetime",
+    "timestamp": 132011213026181935
+   },
+   "event_identifier": 1102,
+   "message": "[1102 / 0x044e] The audit log was cleared.",
+   "parser": "winevtx",
+   "source_name": "Microsoft-Windows-Eventlog",
+   "timestamp": 1556647702618194,
+   "timestamp_desc": "Content Modification Time"
+  },
+  "expect": {
+   "@timestamp": "2019-04-30T18:08:22.618194Z",
+   "host.name": "Sec504Student",
+   "event.module": "plaso",
+   "event.dataset": "windows:evtx:record",
+   "event.action": "windows evtx record: EventID 1102",
+   "event.category": [
+    "configuration"
+   ]
+  }
+ },
+ {
+  "name": "plaso fs:stat",
+  "doc": {
+   "data_type": "fs:stat",
+   "date_time": {
+    "timestamp": 1
+   },
+   "parser": "filestat",
+   "timestamp": 1795754125283340,
+   "timestamp_desc": "Content Modification Time",
+   "message": "OS:/in/x.evtx"
+  },
+  "expect": {
+   "event.module": "plaso",
+   "event.action": "fs stat: Content Modification Time",
+   "event.category": [
+    "file"
+   ],
+   "host.name": null
+  }
+ },
+ {
+  "name": "document without anything known",
+  "doc": {
+   "message": "just a line"
+  },
+  "expect": {
+   "event.dataset": "unknown",
+   "event.action": "unknown",
+   "event.kind": "event"
+  }
+ },
+ {
+  "name": "uac live_response/system/lastlog",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/system/lastlog",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "lastlog: Collection time",
+   "event.category": [
+    "authentication"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/system/lastb",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/system/lastb",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "lastb: Collection time",
+   "event.category": [
+    "authentication"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/system/who",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/system/who",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "who: Collection time",
+   "event.category": [
+    "session"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/system/sudo_lectured",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/system/sudo_lectured",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "sudo lectured: Collection time",
+   "event.category": [
+    "host"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/process/procfs_information",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/process/procfs_information",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "procfs information: Collection time",
+   "event.category": [
+    "process"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/packages/dpkg",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/packages/dpkg",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "dpkg: Collection time",
+   "event.category": [
+    "package"
+   ]
+  }
+ },
+ {
+  "name": "uac live_response/system/systemctl",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "live_response/system/systemctl",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "systemctl: Collection time",
+   "event.category": [
+    "configuration"
+   ]
+  }
+ },
+ {
+  "name": "uac system/suid",
+  "doc": {
+   "@timestamp": "2026-11-26T10:27:54+00:00",
+   "timestamp_desc": "UAC Collection Time",
+   "data_type": "uac:live_response:line",
+   "hostname": "node-northsea-1",
+   "artifact": "system/suid",
+   "message": "x"
+  },
+  "expect": {
+   "event.action": "suid: Collection time",
+   "event.category": [
+    "file"
+   ]
+  }
+ }
 ]
