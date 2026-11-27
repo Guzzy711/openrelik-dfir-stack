@@ -172,7 +172,8 @@ Kibana is in dark mode and shows times as ISO 8601 in UTC
 go to Stack Management → Advanced Settings (*Dark mode*, *Timezone for date formatting*).
 
 In Kibana open **Discover**, click **Open** (top right) and pick **Super timeline**. A new search
-(**New**, top left) starts with the same columns. Filter with
+(**New**, top left) starts with the same columns and the last 5 years; for older evidence,
+widen the time range (top right). Filter with
 the search bar, for example:
 
 - `event.category: process and host.name: PC01` — everything that ran on PC01
